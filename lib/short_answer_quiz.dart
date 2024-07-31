@@ -7,26 +7,27 @@ import 'package:boggle/do_list.dart';
 import 'package:boggle/community.dart';
 import 'package:boggle/mypage.dart';
 
-class Quiz extends StatefulWidget {
+class ShortAnswerQuiz extends StatefulWidget {
   final String userId;
 
-  const Quiz({super.key, required this.userId});
+  const ShortAnswerQuiz({super.key, required this.userId});
 
   @override
-  State<Quiz> createState() => _QuizState();
+  State<ShortAnswerQuiz> createState() => _ShortAnswerQuizState();
 }
 
-class _QuizState extends State<Quiz> {
+class _ShortAnswerQuizState extends State<ShortAnswerQuiz> {
   List<dynamic> _quizData = [];
   int _currentQuizIndex = 0;
   String _resultMessage = '';
   int _correctAnswers = 0;
   bool _isQuizCompleted = false;
   int _selectedIndex = 1;
-  String _selectedAnswer = '';
+  String _userAnswer = '';
   late String _userId;
   final int _pointsToAdd = 10;
   String _userPoints = '0';
+  final TextEditingController _controller = TextEditingController();
 
   @override
   void initState() {
@@ -37,8 +38,7 @@ class _QuizState extends State<Quiz> {
   }
 
   Future<void> _fetchQuizData() async {
-    final response =
-        await http.get(Uri.parse('http://10.0.2.2:8000/quiz_data_api'));
+    final response = await http.get(Uri.parse('http://10.0.2.2:8000/quiz_data_api'));
     if (response.statusCode == 200) {
       setState(() {
         _quizData = json.decode(response.body);
@@ -49,8 +49,7 @@ class _QuizState extends State<Quiz> {
   }
 
   Future<void> _fetchUserPoints() async {
-    final response =
-        await http.get(Uri.parse('http://10.0.2.2:8000/user_points/$_userId'));
+    final response = await http.get(Uri.parse('http://10.0.2.2:8000/user_points/$_userId'));
     if (response.statusCode == 200) {
       final userPoints = json.decode(response.body)['points'];
       setState(() {
@@ -61,7 +60,7 @@ class _QuizState extends State<Quiz> {
     }
   }
 
-  Future<void> _checkAnswer(String question, String selectedAnswer) async {
+  Future<void> _checkAnswer(String question, String userAnswer) async {
     final response = await http.post(
       Uri.parse('http://10.0.2.2:8000/check_answer/'),
       headers: <String, String>{
@@ -69,7 +68,7 @@ class _QuizState extends State<Quiz> {
       },
       body: jsonEncode(<String, String>{
         'question': question,
-        'answer': selectedAnswer,
+        'answer': userAnswer,
       }),
     );
 
@@ -87,11 +86,11 @@ class _QuizState extends State<Quiz> {
           _currentQuizIndex++;
         } else {
           _isQuizCompleted = true;
-          _resultMessage +=
-              '\n\nQuiz completed! You got $_correctAnswers out of ${_quizData.length} correct.';
+          _resultMessage += '\n\nQuiz completed! You got $_correctAnswers out of ${_quizData.length} correct.';
           _updateUserPoints(_userId, _correctAnswers * 3); // Update points here
         }
-        _selectedAnswer = '';
+        _userAnswer = '';
+        _controller.clear();
       });
     } else {
       throw Exception('Failed to check answer');
@@ -100,7 +99,7 @@ class _QuizState extends State<Quiz> {
 
   Future<void> _updateUserPoints(String userId, int pointsToAdd) async {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/update_user_points/'), // 슬래시 추가
+      Uri.parse('http://10.0.2.2:8000/update_user_points/'),
       headers: <String, String>{
         'Content-Type': 'application/x-www-form-urlencoded',
       },
@@ -173,12 +172,9 @@ class _QuizState extends State<Quiz> {
         unselectedItemColor: const Color.fromARGB(255, 235, 181, 253),
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(label: '홈', icon: Icon(Icons.home)),
-          BottomNavigationBarItem(
-              label: '실천', icon: Icon(Icons.volunteer_activism)),
-          BottomNavigationBarItem(
-              label: '커뮤니티', icon: Icon(Icons.mark_chat_unread)),
-          BottomNavigationBarItem(
-              label: 'MY', icon: Icon(Icons.account_circle)),
+          BottomNavigationBarItem(label: '실천', icon: Icon(Icons.volunteer_activism)),
+          BottomNavigationBarItem(label: '커뮤니티', icon: Icon(Icons.mark_chat_unread)),
+          BottomNavigationBarItem(label: 'MY', icon: Icon(Icons.account_circle)),
         ],
       ),
     );
@@ -190,7 +186,7 @@ class _QuizState extends State<Quiz> {
       appBar: PreferredSize(
         preferredSize: const Size.fromHeight(kToolbarHeight),
         child: Padding(
-          padding: const EdgeInsets.all(10.10),
+          padding: const EdgeInsets.all(10.0),
           child: AppBar(
             title: const Text('오늘의 퀴즈', style: TextStyle(color: Colors.black)),
             centerTitle: true,
@@ -213,18 +209,27 @@ class _QuizState extends State<Quiz> {
                       textAlign: TextAlign.center,
                     ),
                     const SizedBox(height: 20),
-                    ..._buildChoiceButtons(_quizData[_currentQuizIndex]),
+                    TextField(
+                      controller: _controller,
+                      decoration: const InputDecoration(
+                        labelText: '답을 입력하세요',
+                        border: OutlineInputBorder(),
+                      ),
+                      onChanged: (value) {
+                        setState(() {
+                          _userAnswer = value;
+                        });
+                      },
+                    ),
                     const SizedBox(height: 20),
                     ElevatedButton(
                       onPressed: () => _checkAnswer(
                         _quizData[_currentQuizIndex]['explain'],
-                        _selectedAnswer,
+                        _userAnswer,
                       ),
                       style: ElevatedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(
-                            vertical: 12, horizontal: 24),
-                        backgroundColor:
-                            const Color.fromARGB(255, 196, 42, 250),
+                        padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                        backgroundColor: const Color.fromARGB(255, 196, 42, 250),
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(10),
                         ),
@@ -240,36 +245,11 @@ class _QuizState extends State<Quiz> {
                       style: const TextStyle(fontSize: 16),
                     ),
                     const SizedBox(height: 20),
-                    // Remove this line to stop showing real-time points
-                    // Text(
-                    //   '포인트: $_userPoints',
-                    //   style: const TextStyle(
-                    //       fontSize: 20.0, fontWeight: FontWeight.bold),
-                    // ),
                   ],
                 ),
               ],
             ),
     );
-  }
-
-  List<Widget> _buildChoiceButtons(Map<String, dynamic> quiz) {
-    List<Widget> choiceButtons = [];
-    for (String choice in quiz['choices']) {
-      choiceButtons.add(
-        RadioListTile<String>(
-          title: Text(choice),
-          value: choice,
-          groupValue: _selectedAnswer,
-          onChanged: (String? value) {
-            setState(() {
-              _selectedAnswer = value!;
-            });
-          },
-        ),
-      );
-    }
-    return choiceButtons;
   }
 
   Widget _buildScorePage() {
@@ -298,8 +278,7 @@ class _QuizState extends State<Quiz> {
             const SizedBox(height: 30),
             Text(
               '$pointsEarned 포인트 획득',
-              style:
-                  const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 30),
             ElevatedButton(
@@ -307,14 +286,12 @@ class _QuizState extends State<Quiz> {
                 Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) =>
-                        CorrectAnswersPage(quizData: _quizData),
+                    builder: (context) => CorrectAnswersPage(quizData: _quizData),
                   ),
                 );
               },
               style: ElevatedButton.styleFrom(
-                padding:
-                    const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
+                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 24),
                 backgroundColor: Colors.blue,
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
@@ -325,11 +302,10 @@ class _QuizState extends State<Quiz> {
                 style: TextStyle(fontSize: 18, color: Colors.white),
               ),
             ),
-            const SizedBox(height: 20), // Added to separate elements
+            const SizedBox(height: 20),
             Text(
               '포인트: $_userPoints',
-              style:
-                  const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
+              style: const TextStyle(fontSize: 20.0, fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -373,14 +349,12 @@ class CorrectAnswersPage extends StatelessWidget {
                 children: [
                   Text(
                     quizData[index]['explain'],
-                    style: const TextStyle(
-                        fontSize: 18.0, fontWeight: FontWeight.bold),
+                    style: const TextStyle(fontSize: 18.0, fontWeight: FontWeight.bold),
                   ),
                   const SizedBox(height: 8.0),
                   Text(
                     '정답: ${quizData[index]['hNm']}',
-                    style:
-                        const TextStyle(fontSize: 16.0, color: Colors.black54),
+                    style: const TextStyle(fontSize: 16.0, color: Colors.black54),
                   ),
                 ],
               ),

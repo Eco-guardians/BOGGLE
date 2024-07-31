@@ -20,7 +20,7 @@ class MyPage extends StatefulWidget {
 
 class _MyPageState extends State<MyPage> {
   var _index = 3; // 페이지 인덱스 0,1,2,3
-  String _nickname = ''; 
+  String _nickname = '';
   int _points = 0;
   int _rank = 0;
   String? _location; // 초기값을 null로 설정
@@ -49,6 +49,7 @@ class _MyPageState extends State<MyPage> {
       print('Failed to load user info');
     }
   }
+
   // 페이지 이동 함수
   void _navigateToPage(int index) {
     Widget nextPage;
@@ -81,12 +82,10 @@ class _MyPageState extends State<MyPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        title: Text(
-          ' BOGGLE',
-          style: GoogleFonts.londrinaSolid(
-              fontSize: 27,
-              fontWeight: FontWeight.normal,
-              color: const Color.fromARGB(255, 196, 42, 250)),
+        title: Image.asset(
+          'image/boggleimg.png',
+          height: 28, // 이미지 높이 설정
+          fit: BoxFit.cover, // 이미지 fit 설정
         ),
         centerTitle: false,
       ),
@@ -157,89 +156,91 @@ class _MyPageState extends State<MyPage> {
                           Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) => UserInfo(userId: widget.userId)),
-                            );
-                          },
-                          child: const Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                            children: [
-                              Text(
-                                '   회원정보 수정',
-                                style: TextStyle(
-                                  fontSize: 20,
-                                  color: Colors.black,
-                                ),
-                              ),
-                              Icon(
-                                Icons.arrow_forward_ios,
+                                builder: (context) =>
+                                    UserInfo(userId: widget.userId)),
+                          );
+                        },
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '   회원정보 수정',
+                              style: TextStyle(
+                                fontSize: 20,
                                 color: Colors.black,
                               ),
-                            ],
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 10),
-                      SizedBox(
-                        width: 300,
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => ChangePW(userId: widget.userId)),
-                            );
-                          },
-                          child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '   비밀번호 수정',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Colors.black,
-                                ),
-                              ],
                             ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                     const SizedBox(height: 10),
                     SizedBox(
-                        width: 300,
-                        child: TextButton(
-                          onPressed: () {
-                            Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => WithdrawPage(userId: widget.userId)),
-                            );
-                          },
-                          child: const Row(
-                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                              children: [
-                                Text(
-                                  '   회원탈퇴',
-                                  style: TextStyle(
-                                    fontSize: 20,
-                                    color: Colors.black,
-                                  ),
-                                ),
-                                Icon(
-                                  Icons.arrow_forward_ios,
-                                  color: Colors.black,
-                                ),
-                              ],
+                      width: 300,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    ChangePW(userId: widget.userId)),
+                          );
+                        },
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '   비밀번호 수정',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.black,
+                              ),
                             ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    SizedBox(
+                      width: 300,
+                      child: TextButton(
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                                builder: (context) =>
+                                    WithdrawPage(userId: widget.userId)),
+                          );
+                        },
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              '   회원탈퇴',
+                              style: TextStyle(
+                                fontSize: 20,
+                                color: Colors.black,
+                              ),
+                            ),
+                            Icon(
+                              Icons.arrow_forward_ios,
+                              color: Colors.black,
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
                 ),
               ),
-              
             ),
           ],
         ),

@@ -63,12 +63,10 @@ class _DoListState extends State<DoList> {
         appBar: AppBar(
           automaticallyImplyLeading: false,
           backgroundColor: Colors.white,
-          title: const Text(
-            ' BOGGLE',
-            style: TextStyle(
-                fontSize: 27,
-                fontWeight: FontWeight.normal,
-                color: Color.fromARGB(255, 196, 42, 250)),
+          title: Image.asset(
+            'image/boggleimg.png',
+            height: 28, // 이미지 높이 설정
+            fit: BoxFit.cover, // 이미지 fit 설정
           ),
           centerTitle: false,
         ),
@@ -85,8 +83,8 @@ class _DoListState extends State<DoList> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) =>
-                              const cleanserCertificationList(),
+                          builder: (context) => CleanserCertificationList(
+                              userId: widget.userId), // 수정된 부분
                         ),
                       );
                     },

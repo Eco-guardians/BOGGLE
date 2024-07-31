@@ -110,7 +110,11 @@ class _MyHomePageState extends State<MyHomePage> {
           backgroundColor: Colors.white,
           title: Row(
             children: [
-              Text('BOGGLE', style: titleStyle),
+              Image.asset(
+                'image/boggleimg.png',
+                height: 28, // 이미지 높이 설정
+                fit: BoxFit.cover, // 이미지 fit 설정
+              ),
             ],
           ),
           centerTitle: false,
@@ -122,15 +126,27 @@ class _MyHomePageState extends State<MyHomePage> {
               Tab(text: '포인트'),
             ],
             indicatorColor: Color.fromARGB(255, 196, 42, 250), // 인디케이터 색상
+            labelStyle: TextStyle(
+              fontWeight: FontWeight.bold,
+            ), // 탭의 글씨를 굵게 설정
             labelColor: Color.fromARGB(255, 196, 42, 250), // 선택된 탭의 색상
             unselectedLabelColor: Colors.black, // 선택되지 않은 탭의 색상
+            indicator: UnderlineTabIndicator(
+              borderSide: BorderSide(
+                width: 2.0,
+                color: Color.fromARGB(255, 196, 42, 250),
+              ),
+            ),
           ),
         ),
-        body: TabBarView(
-          children: [
-            _buildAquariumTab(indicatorTextStyle),
-            _buildPointsTab(),
-          ],
+        body: Container(
+          color: Colors.white, // 배경색을 흰색으로 설정
+          child: TabBarView(
+            children: [
+              _buildAquariumTab(indicatorTextStyle),
+              _buildPointsTab(),
+            ],
+          ),
         ),
         bottomNavigationBar: BottomNavigationBar(
           onTap: (index) {
@@ -165,40 +181,56 @@ class _MyHomePageState extends State<MyHomePage> {
             height: 200,
             child: Stack(
               children: [
-                Image.asset(
-                  'image/background.png',
-                  fit: BoxFit.cover,
-                  width: double.infinity,
-                  height: double.infinity,
-                ),
-                if (_points > 25)
+                if (_points <= 10)
                   Image.asset(
-                    'image/bubble.png',
-                    fit: BoxFit.cover,
+                    'image/Poor.png',
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                  )
+                else if (_points > 10 && _points <= 25)
+                  Image.asset(
+                    'image/FishBowl.png',
+                    fit: BoxFit.contain,
+                    width: double.infinity,
+                    height: double.infinity,
+                  )
+                else ...[
+                  Image.asset(
+                    'image/background.png',
+                    fit: BoxFit.contain,
                     width: double.infinity,
                     height: double.infinity,
                   ),
-                if (_points > 50)
-                  Image.asset(
-                    'image/fish_far.png',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-                if (_points > 75)
-                  Image.asset(
-                    'image/weeds.png',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
-                if (_points > 100)
-                  Image.asset(
-                    'image/fishes.png',
-                    fit: BoxFit.cover,
-                    width: double.infinity,
-                    height: double.infinity,
-                  ),
+                  if (_points > 25)
+                    Image.asset(
+                      'image/bubble.png',
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  if (_points > 50)
+                    Image.asset(
+                      'image/fish_far.png',
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  if (_points > 75)
+                    Image.asset(
+                      'image/weeds.png',
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                  if (_points > 100)
+                    Image.asset(
+                      'image/fishes.png',
+                      fit: BoxFit.contain,
+                      width: double.infinity,
+                      height: double.infinity,
+                    ),
+                ],
               ],
             ),
           ),
@@ -237,11 +269,16 @@ class _MyHomePageState extends State<MyHomePage> {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
+                        Text('0'),
                         Text('1'),
                         Text('2'),
                         Text('3'),
+                        Text('4'),
                         Text('5'),
+                        Text('6'),
+                        Text('7'),
                         Text('8'),
+                        Text('9'),
                         Text('10'),
                       ],
                     ),
@@ -270,47 +307,67 @@ class _MyHomePageState extends State<MyHomePage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text(
-              '$_nickname 님의 포인트',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            SizedBox(height: 10),
             Container(
+              width: double.infinity, // 가로로 꽉 채우기
               padding: EdgeInsets.all(16.0),
               decoration: BoxDecoration(
-                color: Color.fromARGB(255, 248, 248, 248),
-                borderRadius: BorderRadius.circular(10.0),
-                border: Border.all(
-                  color: Colors.grey, // 테두리 색상
-                  width: 1.0, // 테두리 두께
-                ),
+                color: Color.fromARGB(255, 240, 240, 240), // 컨테이너 색상 변경
+                borderRadius: BorderRadius.circular(25.0), // 모서리를 25% 둥글게 설정
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.2), // 그림자 색상 및 투명도
+                    spreadRadius: 1,
+                    blurRadius: 3,
+                    offset: Offset(0, 3), // 그림자 위치
+                  ),
+                ],
+                border: null, // 외곽선 제거
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    '$_points P',
-                    style: TextStyle(
-                      fontSize: 48,
-                      fontWeight: FontWeight.bold,
-                      color: Color.fromARGB(255, 196, 42, 250),
+                  RichText(
+                    text: TextSpan(
+                      text: ' ',
+                      style: GoogleFonts.notoSans(
+                        fontSize: 16,
+                        fontWeight: FontWeight.normal,
+                        color: Colors.black,
+                      ),
+                      children: <TextSpan>[
+                        TextSpan(
+                          text: _nickname,
+                          style: TextStyle(
+                              fontWeight: FontWeight.bold, fontSize: 20),
+                        ),
+                        TextSpan(
+                          text: ' 님의 포인트',
+                        ),
+                      ],
                     ),
                   ),
-                  SizedBox(height: 10),
-                  Center(),
+                  SizedBox(height: 3),
+                  Text(
+                    '   $_points P',
+                    style: GoogleFonts.notoSans(
+                      fontSize: 35,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black,
+                    ),
+                  ),
                 ],
               ),
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 40),
             Text(
               '포인트 리포트',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Text(
               '나의 포인트를 비교하고 분석해보세요',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.normal),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
             ),
-            SizedBox(height: 10),
+            SizedBox(height: 25),
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.end, // 그래프를 아래쪽에 정렬
@@ -321,26 +378,26 @@ class _MyHomePageState extends State<MyHomePage> {
                     Color.fromARGB(255, 196, 42, 250), '나의 포인트', _points),
               ],
             ),
-            SizedBox(height: 20),
+            SizedBox(height: 40),
             Text(
               '나의 순위',
               style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
             ),
             Text(
               '나는 상위 몇 프로?',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.normal),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
             ),
             Text(
               '나의 포인트 순위를 알려드립니다.',
-              style: TextStyle(fontSize: 10, fontWeight: FontWeight.normal),
+              style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
             ),
             SizedBox(height: 10),
             Center(
               child: Column(
                 children: [
                   SizedBox(
-                    width: 300, // 크기를 더 크게 설정
-                    height: 300, // 크기를 더 크게 설정
+                    width: 300,
+                    height: 300,
                     child: Stack(
                       children: [
                         Center(
@@ -349,7 +406,7 @@ class _MyHomePageState extends State<MyHomePage> {
                           height: 200,
                           child: CircularProgressIndicator(
                             value: 0.7,
-                            strokeWidth: 10, // 원의 두께를 더 두껍게 설정
+                            strokeWidth: 40, // 원의 두께를 더 두껍게 설정
                             color: Color.fromARGB(255, 196, 42, 250),
                             backgroundColor: Colors.grey[200],
                           ),
@@ -407,7 +464,14 @@ class _MyHomePageState extends State<MyHomePage> {
         Container(
           width: 50,
           height: height.toDouble(),
-          color: color,
+          decoration: BoxDecoration(
+            color: color,
+            borderRadius: BorderRadius.only(
+              topLeft: Radius.circular(10), // 상단 좌측 둥글게
+              topRight: Radius.circular(10), // 상단 우측 둥글게
+            ),
+            border: Border.all(color: Colors.black), // 검은색 외곽선
+          ),
         ),
         SizedBox(height: 10),
         Text(label),
@@ -427,40 +491,30 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
           SizedBox(height: 10),
           _buildWaterQualityRow(Icons.water_drop, Colors.blue, '매우 좋음',
-              '간단한 정수 후 마실 수 있음', 1.0, 2.0),
+              '간단한 정수 후 마실 수 있음', 0.0, 1.0),
           SizedBox(height: 10),
           _buildWaterQualityRow(Icons.water_drop, Colors.lightBlue, '좋음',
+              '일반 정수 처리 후 마실 수 있음', 1.0, 2.0),
+          SizedBox(height: 10),
+          _buildWaterQualityRow(Icons.water_drop, Colors.green, '약간 좋음',
               '일반 정수 처리 후 마실 수 있음', 2.0, 3.0),
           SizedBox(height: 10),
-          _buildWaterQualityRow(
-              Icons.water_drop,
-              Color.fromARGB(255, 34, 192, 81),
-              '약간 좋음',
-              '일반 정수 처리 후 마실 수 있음',
-              3.0,
-              5.0),
+          _buildWaterQualityRow(Icons.water_drop, Colors.blueGrey, '보통',
+              '일반 정수 후 공업용수로 사용 가능', 3.0, 6.0),
           SizedBox(height: 10),
           _buildWaterQualityRow(
               Icons.water_drop,
-              Color.fromARGB(255, 148, 147, 147),
-              '보통',
-              '일반 정수 후 공업용수로 사용 가능',
-              5.0,
-              8.0),
-          SizedBox(height: 10),
-          _buildWaterQualityRow(
-              Icons.water_drop,
-              Color.fromARGB(255, 125, 115, 28),
+              const Color.fromARGB(255, 172, 155, 1),
               '약간 나쁨',
               '농업용수로 사용 가능',
-              8.0,
-              10.0),
+              6.0,
+              8.0),
           SizedBox(height: 10),
           _buildWaterQualityRow(Icons.water_drop, Colors.orange, '나쁨',
               '특수처리 후 공업용수로 사용 가능', 8.0, 10.0),
           SizedBox(height: 10),
           _buildWaterQualityRow(
-              Icons.water_drop, Colors.red, '매우 나쁨', '이용 불가능', 8.0, 10.0),
+              Icons.water_drop, Colors.red, '매우 나쁨', '이용 불가능', 10.0, 100),
         ],
       ),
     );
@@ -492,30 +546,32 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Color _getColorForIndex(int index) {
-    if (index < 2) return Colors.blue;
-    if (index < 3) return Colors.lightBlue;
-    if (index < 5) return Colors.green;
-    if (index < 8) return Colors.orange;
+    if (index < 1) return Colors.blue;
+    if (index < 2) return Colors.lightBlue;
+    if (index < 3) return Colors.green;
+    if (index < 5) return Colors.blueGrey;
+    if (index < 7) return Colors.yellow;
+    if (index < 9) return Colors.orange;
     return Colors.red;
   }
 
   Color _getColorForArrow() {
     double ppm = _waterQuality;
-    if (ppm <= 2) return Colors.blue;
-    if (ppm <= 3) return Colors.lightBlue;
-    if (ppm <= 5) return Colors.green;
-    if (ppm <= 8) return Colors.orange;
+    if (ppm < 1) return Colors.blue;
+    if (ppm < 2) return Colors.lightBlue;
+    if (ppm < 3) return Colors.green;
+    if (ppm < 5) return Colors.blueGrey;
+    if (ppm < 7) return Colors.yellow;
+    if (ppm < 9) return Colors.orange;
     return Colors.red;
   }
 
   double _getArrowPosition() {
     double ppm = _waterQuality;
-    double maxPosition = 160.0;
-    if (ppm <= 1) return 0.0;
-    if (ppm <= 2) return 16.0;
-    if (ppm <= 3) return 32.0;
-    if (ppm <= 5) return 64.0;
-    if (ppm <= 8) return 128.0;
+    double maxPosition = 365;
+    if (ppm < 3) return 37 * ppm - 9;
+    if (ppm < 4) return 36.5 * ppm - 6;
+    if (ppm < 11) return 36 * ppm - 5;
     return maxPosition;
   }
 }

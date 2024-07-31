@@ -30,7 +30,8 @@ class _WithdrawPageState extends State<WithdrawPage> {
   }
 
   void _fetchUserInfo() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:8000/user_info/${widget.userId}'));
+    final response = await http
+        .get(Uri.parse('http://10.0.2.2:8000/user_info/${widget.userId}'));
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes)); // UTF-8 디코딩
       setState(() {
@@ -167,12 +168,10 @@ class _WithdrawPageState extends State<WithdrawPage> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        title: Text(
-          ' BOGGLE',
-          style: GoogleFonts.londrinaSolid(
-              fontSize: 27,
-              fontWeight: FontWeight.normal,
-              color: const Color.fromARGB(255, 196, 42, 250)),
+        title: Image.asset(
+          'image/boggleimg.png',
+          height: 28, // 이미지 높이 설정
+          fit: BoxFit.cover, // 이미지 fit 설정
         ),
         centerTitle: false,
       ),
@@ -222,13 +221,15 @@ class _WithdrawPageState extends State<WithdrawPage> {
                   hintText: '비밀번호를 입력해주세요',
                   contentPadding: const EdgeInsets.all(8),
                   suffixIcon: IconButton(
-                  icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
-                  onPressed: () {
-                    setState(() {
-                      _showPassword = !_showPassword; // 상태 변경
-                    });
-                  },
-                ),
+                    icon: Icon(_showPassword
+                        ? Icons.visibility
+                        : Icons.visibility_off),
+                    onPressed: () {
+                      setState(() {
+                        _showPassword = !_showPassword; // 상태 변경
+                      });
+                    },
+                  ),
                 ),
               ),
             ),

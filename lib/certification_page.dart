@@ -5,24 +5,24 @@ import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 
-class CertificationPage extends StatelessWidget{
-  const CertificationPage({Key? key, required this.certification}) : super(key: key);
+class CertificationPage extends StatelessWidget {
+  const CertificationPage({Key? key, required this.certification})
+      : super(key: key);
 
   final Certification certification;
 
   @override
-  Widget build(BuildContext context){
+  Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 255, 255, 255),
-        title: Text(
-    ' BOGGLE',
-    style: GoogleFonts.londrinaSolid(
-     fontSize:27,
-     fontWeight: FontWeight.normal,
-     color: Color.fromARGB(255, 196, 42, 250))),
+        title: Image.asset(
+          'image/boggleimg.png',
+          height: 28, // 이미지 높이 설정
+          fit: BoxFit.cover, // 이미지 fit 설정
+        ),
       ),
       body: Center(
         child: Column(
@@ -36,21 +36,18 @@ class CertificationPage extends StatelessWidget{
             const SizedBox(
               height: 40,
             ),
-            Text(certification.cleansername,
-            style: GoogleFonts.ibmPlexSansKr(
-              fontSize: 23,
-              fontWeight: FontWeight.bold
-            ),
+            Text(
+              certification.cleansername,
+              style: GoogleFonts.ibmPlexSansKr(
+                  fontSize: 23, fontWeight: FontWeight.bold),
             ),
             const SizedBox(
               height: 10,
             ),
-
-            Text('인증확인 일자 : ' + certification.certificationdate,
-                style: const TextStyle(
-                fontSize: 18,
-                fontWeight: FontWeight.normal
-            ),
+            Text(
+              '인증확인 일자 : ' + certification.certificationdate,
+              style:
+                  const TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
             ),
           ],
         ),

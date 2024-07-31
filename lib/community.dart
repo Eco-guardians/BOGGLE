@@ -1,12 +1,12 @@
-import 'package:boggle/community_post.dart';
 import 'package:flutter/material.dart';
 import 'package:boggle/do_list.dart';
 import 'package:boggle/myhome.dart';
 import 'package:boggle/mypage.dart';
 import 'package:boggle/communityInfo.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:like_button/like_button.dart';
-
+import 'package:intl/intl.dart';
+import 'dart:io';
+import 'package:image_picker/image_picker.dart';
 
 class Community extends StatefulWidget {
   final String userId;
@@ -23,14 +23,14 @@ class _CommunityState extends State<Community> {
   final List<CommunityPost> posts = [
     CommunityPost(
       '홍길동',
-      'assets/user1.png',
+      'image/usericon.png',
       '2024-05-01 13:17',
       '설거지 바 써보신분?',
       '제가 액체 주방세제에서 고체 주방세제로 바꾸려고 하는데 괜찮은 설거지 바 있으면 추천 부탁드립니다.',
     ),
     CommunityPost(
       '김철수',
-      'assets/user2.png',
+      'image/usericon.png',
       '2024-05-01 13:06',
       '주말에 플로깅 가시는 분 있나요?',
       '이번주 무심천에서 진행하는 플로깅에 참여하고 싶은데 혹시 가시는 분 있나요?',
@@ -71,11 +71,12 @@ class _CommunityState extends State<Community> {
     if (result != null && result is Map<String, dynamic>) {
       setState(() {
         posts.add(CommunityPost(
-          'one', // 사용자의 닉네임 -> DB에서 가져올 것
-          'assets/usericon.png', // 사용자 아이콘 경로
+          'one', // 사용자의 닉네임
+          'image/usericon.png', // 사용자 아이콘 경로
           result['date'],
           result['title'],
           result['content'],
+          postImage: result['image'],
         ));
       });
     }
@@ -88,13 +89,10 @@ class _CommunityState extends State<Community> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        title: Text(
-          'BOGGLE',
-          style: GoogleFonts.londrinaSolid(
-            fontSize: 27,
-            fontWeight: FontWeight.normal,
-            color: const Color.fromARGB(255, 196, 42, 250),
-          ),
+        title: Image.asset(
+          'image/boggleimg.png',
+          height: 28, // 이미지 높이 설정
+          fit: BoxFit.cover, // 이미지 fit 설정
         ),
         centerTitle: false,
       ),
@@ -130,7 +128,8 @@ class _CommunityState extends State<Community> {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => CommunityPostScreen(post: posts[index]),
+                        builder: (context) =>
+                            CommunityPostScreen(post: posts[index]),
                       ),
                     );
                   },
@@ -176,7 +175,7 @@ class _CommunityState extends State<Community> {
           Row(
             children: [
               CircleAvatar(
-                backgroundImage: AssetImage('image/usericon.png'),
+                backgroundImage: AssetImage(post.userImage),
               ),
               const SizedBox(width: 8.0),
               Text(post.userNickname),
@@ -185,9 +184,13 @@ class _CommunityState extends State<Community> {
             ],
           ),
           const SizedBox(height: 8.0),
-          Text(post.postTitle, style: const TextStyle(fontWeight: FontWeight.bold)),
+          Text(post.postTitle,
+              style: const TextStyle(fontWeight: FontWeight.bold)),
           const SizedBox(height: 4.0),
           Text(post.postContent),
+          if (post.postImage != null) ...[
+            Image.file(post.postImage!),
+          ],
           Row(
             children: [
               IconButton(
@@ -197,7 +200,8 @@ class _CommunityState extends State<Community> {
                   // Handle like action
                 },
               ),
-              Text('${post.likeCount}'), // Static example, replace with dynamic data
+              Text(
+                  '${post.likeCount}'), // Static example, replace with dynamic data
               const SizedBox(width: 16.0),
               IconButton(
                 icon: const Icon(Icons.comment),
@@ -206,7 +210,8 @@ class _CommunityState extends State<Community> {
                   // Handle comment action
                 },
               ),
-              Text('${post.commentCount}'), // Static example, replace with dynamic data
+              Text(
+                  '${post.commentCount}'), // Static example, replace with dynamic data
             ],
           ),
           const Divider(color: Colors.grey),
@@ -264,7 +269,7 @@ class _CommunityPostScreenState extends State<CommunityPostScreen> {
   @override
   void dispose() {
     _commentController.dispose();
-    Navigator.pop(context, widget.post); // 변경된 post 객체를 상위 페이지로 전달합니다.
+    Navigator.pop(context, widget.post); // 변경된 post 객체를 상위 페이지로 전달
     super.dispose();
   }
 
@@ -273,11 +278,12 @@ class _CommunityPostScreenState extends State<CommunityPostScreen> {
     return Scaffold(
       appBar: AppBar(
         backgroundColor: Colors.white,
-        title: const Text(''), // AppBar의 텍스트를 삭제합니다.
-        iconTheme: const IconThemeData(color: Color.fromARGB(255, 196, 42, 250)),
+        title: const Text(''), // AppBar의 텍스트를 삭제
+        iconTheme:
+        const IconThemeData(color: Color.fromARGB(255, 196, 42, 250)),
       ),
       body: Container(
-        color: Colors.white, // 배경색을 흰색으로 설정합니다.
+        color: Colors.white, // 배경색을 흰색으로 설정
         padding: const EdgeInsets.all(16.0),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
@@ -285,7 +291,7 @@ class _CommunityPostScreenState extends State<CommunityPostScreen> {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: AssetImage('image/usericon.png'),
+                  backgroundImage: AssetImage(widget.post.userImage),
                 ),
                 const SizedBox(width: 8.0),
                 Text(widget.post.userNickname),
@@ -295,10 +301,14 @@ class _CommunityPostScreenState extends State<CommunityPostScreen> {
             ),
             const SizedBox(height: 16.0),
             Text(widget.post.postTitle,
-                style: const TextStyle(
-                    fontWeight: FontWeight.bold, fontSize: 24)),
+                style:
+                const TextStyle(fontWeight: FontWeight.bold, fontSize: 24)),
             Padding(padding: const EdgeInsets.all(15.0)),
             Text(widget.post.postContent, style: const TextStyle(fontSize: 16)),
+            if (widget.post.postImage != null) ...[
+              const SizedBox(height: 16.0),
+              Image.file(widget.post.postImage!),
+            ],
             const SizedBox(height: 8.0),
             Row(
               children: [
@@ -329,7 +339,7 @@ class _CommunityPostScreenState extends State<CommunityPostScreen> {
                 },
               ),
             ),
-            const Divider(color: Colors.grey), // 글과 댓글 사이에 경계를 추가합니다.
+            const Divider(color: Colors.grey), // 글과 댓글 사이에 경계를 추가
             Padding(
               padding: const EdgeInsets.symmetric(horizontal: 8.0),
               child: Row(
@@ -347,10 +357,148 @@ class _CommunityPostScreenState extends State<CommunityPostScreen> {
                     ),
                   ),
                   IconButton(
-                    icon: const Icon(Icons.send, color: Color.fromARGB(255, 196, 42, 250)),
+                    icon: const Icon(Icons.send,
+                        color: Color.fromARGB(255, 196, 42, 250)),
                     onPressed: _addComment,
                   ),
                 ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class CommunityPostPage extends StatefulWidget {
+  const CommunityPostPage({Key? key}) : super(key: key);
+
+  @override
+  _CommunityPostPageState createState() => _CommunityPostPageState();
+}
+
+class _CommunityPostPageState extends State<CommunityPostPage> {
+  final TextEditingController _titleController = TextEditingController();
+  final TextEditingController _contentController = TextEditingController();
+  File? _image;
+
+  Future<void> _pickImage() async {
+    final ImagePicker picker = ImagePicker();
+    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
+    if (pickedFile != null) {
+      setState(() {
+        _image = File(pickedFile.path);
+      });
+    }
+  }
+
+  @override
+  void dispose() {
+    _titleController.dispose();
+    _contentController.dispose();
+    super.dispose();
+  }
+
+  void _submitPost() {
+    final String title = _titleController.text;
+    final String content = _contentController.text;
+    final String date = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
+
+    if (title.isNotEmpty && content.isNotEmpty) {
+      Navigator.pop(context, {
+        'title': title,
+        'content': content,
+        'date': date,
+        'image': _image,
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      backgroundColor: Colors.white, // 배경색 흰색으로 설정
+      appBar: AppBar(
+        backgroundColor: Colors.white,
+        centerTitle: true,
+        title: const Text(
+          '글 작성하기',
+          style: TextStyle(color: Colors.black),
+        ),
+        leading: IconButton(
+          icon: const Icon(Icons.close, color: Color.fromARGB(255, 196, 42, 250)),
+          onPressed: () {
+            Navigator.of(context).pop();
+          },
+        ),
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(20.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                const Text(
+                  '글 작성',
+                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+                Icon(Icons.info_outline, color: Color.fromARGB(255, 196, 42, 250)),
+              ],
+            ),
+            const SizedBox(height: 10),
+            TextField(
+              controller: _titleController,
+              decoration: const InputDecoration(
+                labelText: '제목을 입력해주세요.',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            TextField(
+              controller: _contentController,
+              maxLines: 8,
+              textAlignVertical: TextAlignVertical.top,
+              decoration: const InputDecoration(
+                alignLabelWithHint: true,
+                labelText: '내용을 입력해주세요. (최대 1000자)',
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text(
+              '사진 첨부',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            GestureDetector(
+              onTap: _pickImage,
+              child: Container(
+                color: Colors.grey[200],
+                width: 100,
+                height: 100,
+                child: _image != null
+                    ? Image.file(_image!, fit: BoxFit.cover)
+                    : const Icon(Icons.add, color: Colors.grey),
+              ),
+            ),
+            const SizedBox(height: 40),
+            ElevatedButton(
+              onPressed: _submitPost,
+              style: ElevatedButton.styleFrom(
+                minimumSize: const Size(double.infinity, 50),
+                backgroundColor: const Color.fromARGB(255, 196, 42, 250),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+              ),
+              child: const Text(
+                '등록하기',
+                style: TextStyle(fontSize: 18, color: Colors.white),
               ),
             ),
           ],

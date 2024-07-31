@@ -39,7 +39,6 @@ class _LoginPageState extends State<LoginPage> {
           // 로그인 성공 시 처리
           Navigator.of(context).push(MaterialPageRoute(builder: (context) {
             // 성공 시 페이지 이동
-            // return MyHomePage(userId: id);
             return MyHomePage(userId: id);
           }));
         } else {
@@ -110,17 +109,25 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        title: const Text("Login"),
+        title: const Text(""),
         centerTitle: true,
         backgroundColor: Colors.white,
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const SizedBox(
-              width: 300,
-              child: Padding(
+      body: SingleChildScrollView( // 여기에서 SingleChildScrollView로 감쌈
+        child: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.start, // 위젯을 상단에 배치
+            children: [
+              const SizedBox(height: 50), // 빈 공간 줄이기
+              Image.asset(
+                'image/boggleimg.png', // 이미지 경로를 실제 이미지 파일 경로로 변경하세요.
+                width: 220, // 이미지의 너비를 조정
+                height: 220, // 이미지의 높이를 조정
+              ),
+              const SizedBox(height: 20),
+              const SizedBox(
+                width: 300,
+                child: Padding(
                   padding: EdgeInsets.only(left: 0.0),
                   child: Text(
                     '아이디',
@@ -130,26 +137,26 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     textAlign: TextAlign.start,
                   ),
-                ),  
-            ),
-            const SizedBox(height: 5),
-            SizedBox(
-              width: 300,
-              child: TextField(
-                controller: _idController,
-                decoration: const InputDecoration(
-                  filled: true, 
-                  fillColor: Colors.white,  
-                  border: OutlineInputBorder(),
-                  hintText: '아이디를 입력해주세요',
-                  contentPadding: EdgeInsets.all(8),
                 ),
               ),
-            ),
-            const SizedBox(height: 10),
-            const SizedBox(
-              width: 300,
-              child: Padding(
+              const SizedBox(height: 5),
+              SizedBox(
+                width: 300,
+                child: TextField(
+                  controller: _idController,
+                  decoration: const InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: OutlineInputBorder(),
+                    hintText: '아이디를 입력해주세요',
+                    contentPadding: EdgeInsets.all(8),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 10),
+              const SizedBox(
+                width: 300,
+                child: Padding(
                   padding: EdgeInsets.only(left: 0.0),
                   child: Text(
                     '비밀번호',
@@ -159,85 +166,86 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     textAlign: TextAlign.start,
                   ),
-                ),  
-            ),
-            const SizedBox(height: 5),
-            SizedBox(
-              width: 300,
-              child: TextField(
-                controller: _passwordController,
-                obscureText: !_showPassword, // 비밀번호 가리기/보이기 제어
-                decoration:  InputDecoration(
-                  filled: true, 
-                  fillColor: Colors.white,  
-                  border: const OutlineInputBorder(),
-                  hintText: '비밀번호를 입력해주세요',
-                  contentPadding: const EdgeInsets.all(8),
-                  suffixIcon: IconButton(
-                  icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
-                  onPressed: () {
-                    setState(() {
-                      _showPassword = !_showPassword; // 상태 변경
-                    });
-                  },
-                ),
                 ),
               ),
-            ),
-            const SizedBox(height: 20),
-            SizedBox(
-              width: 300,
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: const Color(0xFFC42AFA),
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              const SizedBox(height: 5),
+              SizedBox(
+                width: 300,
+                child: TextField(
+                  controller: _passwordController,
+                  obscureText: !_showPassword, // 비밀번호 가리기/보이기 제어
+                  decoration: InputDecoration(
+                    filled: true,
+                    fillColor: Colors.white,
+                    border: const OutlineInputBorder(),
+                    hintText: '비밀번호를 입력해주세요',
+                    contentPadding: const EdgeInsets.all(8),
+                    suffixIcon: IconButton(
+                      icon: Icon(_showPassword ? Icons.visibility : Icons.visibility_off),
+                      onPressed: () {
+                        setState(() {
+                          _showPassword = !_showPassword; // 상태 변경
+                        });
+                      },
+                    ),
                   ),
                 ),
-                onPressed: _login,
-                child: const Text('로그인'),
               ),
-            ),
-            SizedBox(
-              width: 300,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) {
-                          return const FindIDPage();
-                        }),
-                      );
-                    },
-                    child: const Text("ID 찾기"),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: 300,
+                child: ElevatedButton(
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: const Color(0xFFC42AFA),
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
                   ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) {
-                          return const FindPWPage();
-                        }),
-                      );
-                    },
-                    child: const Text("PW 찾기"),
-                  ),
-                  TextButton(
-                    onPressed: () {
-                      Navigator.of(context).push(
-                        MaterialPageRoute(builder: (context) {
-                          return const RegisterPage();
-                        }),
-                      );
-                    },
-                    child: const Text("회원가입"),
-                  ),
-                ],
+                  onPressed: _login,
+                  child: const Text('로그인'),
+                ),
               ),
-            ),
-          ],
+              SizedBox(
+                width: 300,
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) {
+                            return const FindIDPage();
+                          }),
+                        );
+                      },
+                      child: const Text("ID 찾기"),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) {
+                            return const FindPWPage();
+                          }),
+                        );
+                      },
+                      child: const Text("PW 찾기"),
+                    ),
+                    TextButton(
+                      onPressed: () {
+                        Navigator.of(context).push(
+                          MaterialPageRoute(builder: (context) {
+                            return const RegisterPage();
+                          }),
+                        );
+                      },
+                      child: const Text("회원가입"),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -52,15 +52,14 @@ class _SewerState extends State<Sewer> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Colors.white,
-        title: Text(
-          'BOGGLE',
-          style: GoogleFonts.londrinaSolid(
-              fontSize: 27,
-              fontWeight: FontWeight.normal,
-              color: const Color.fromARGB(255, 196, 42, 250)),
+        title: Image.asset(
+          'image/boggleimg.png',
+          height: 28, // 이미지 높이 설정
+          fit: BoxFit.cover, // 이미지 fit 설정
         ),
         centerTitle: false,
-        iconTheme: IconThemeData(color: Colors.black), // Ensure back arrow is black
+        iconTheme:
+            IconThemeData(color: Colors.black), // Ensure back arrow is black
       ),
       body: SingleChildScrollView(
         child: Center(

@@ -5,40 +5,42 @@ import 'package:google_fonts/google_fonts.dart';
 import 'model.dart';
 import 'certification_page.dart';
 import 'detergent_certification.dart';
+import 'utils.dart'; // utils.dart 파일 임포트
 
-class cleanserList extends StatelessWidget {
+class CleanserList extends StatelessWidget {
   final Certification? newCertification;
+  final String userId; // userId를 받도록 수정
 
-  const cleanserList({Key? key, this.newCertification}) : super(key: key);
+  const CleanserList({Key? key, this.newCertification, required this.userId}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      home: cleanserCertificationList(newCertification: newCertification),
+      home: CleanserCertificationList(newCertification: newCertification, userId: userId),
     );
   }
 }
 
-class cleanserCertificationList extends StatefulWidget {
+class CleanserCertificationList extends StatefulWidget {
   final Certification? newCertification;
+  final String userId; // userId를 받도록 수정
 
-  const cleanserCertificationList({Key? key, this.newCertification}) : super(key: key);
+  const CleanserCertificationList({Key? key, this.newCertification, required this.userId}) : super(key: key);
 
   @override
-  State<cleanserCertificationList> createState() => _State();
+  State<CleanserCertificationList> createState() => _CleanserCertificationListState();
 }
 
-class _State extends State<cleanserCertificationList> {
-  List<Certification> certificationData = [
-    Certification('살림인 100% 친환경 세제', '인증완료', '2024-05-01', File('image/sallimin.jpg')),
-    Certification('슈가버블 친환경 세제', '인증완료', '2024-02-15', File('image/sugarbubble.jpg'))
-  ];
+class _CleanserCertificationListState extends State<CleanserCertificationList> {
+  List<Certification> certificationData = [];
 
   @override
   void initState() {
     super.initState();
     if (widget.newCertification != null) {
       certificationData.add(widget.newCertification!);
+      // 새로운 인증이 추가될 때 포인트 지급
+      updateUserPoints(context, widget.userId, 25);
     }
   }
 
@@ -127,6 +129,8 @@ class _State extends State<cleanserCertificationList> {
               setState(() {
                 certificationData.add(result);
               });
+              // 새로운 인증이 추가될 때 포인트 지급
+              await updateUserPoints(context, widget.userId, 25);
             }
           },
           shape: const CircleBorder(),

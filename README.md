@@ -1,6 +1,6 @@
 # BOGGLE
 
-The New way to save the ENVIRONMENT. (especially, Water Pollution!)
+### 2024-03-02 - 2024-06-20
 
 Name 'BOGGLE' is the onomatopoeia that explan bubble's shape in Korean.
 

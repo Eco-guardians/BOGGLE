@@ -8,7 +8,7 @@ import 'package:boggle/studyquiz.dart';
 import 'package:flutter/material.dart';
 import 'package:boggle/quiz.dart';
 import 'package:google_fonts/google_fonts.dart';
-
+import 'package:boggle/short_answer_quiz.dart';
 class Quizlist extends StatefulWidget {
   final String userId;
 
@@ -53,12 +53,10 @@ class _QuizlistState extends State<Quizlist> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: const Color.fromARGB(255, 255, 255, 255),
-        title: Text(
-          'BOGGLE',
-          style: GoogleFonts.londrinaSolid(
-              fontSize: 27,
-              fontWeight: FontWeight.normal,
-              color: Color.fromARGB(255, 196, 42, 250)),
+        title: Image.asset(
+          'image/boggleimg.png',
+          height: 28, // 이미지 높이 설정
+          fit: BoxFit.cover, // 이미지 fit 설정
         ),
         centerTitle: false,
       ),
@@ -68,10 +66,13 @@ class _QuizlistState extends State<Quizlist> {
           children: <Widget>[
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 235, 181, 253), // Button color
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                backgroundColor:
+                    const Color.fromARGB(255, 235, 181, 253), // Button color
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 minimumSize: const Size(200, 60),
-                textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textStyle:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -87,13 +88,42 @@ class _QuizlistState extends State<Quizlist> {
               },
               child: const Text('퀴즈 공부하기'),
             ),
+  const SizedBox(height: 20), // Add space between buttons
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor:
+                    const Color.fromARGB(255, 235, 181, 253), // Button color
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                minimumSize: const Size(200, 60), // Button size
+                textStyle:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                shadowColor: Colors.black, // Shadow color
+                elevation: 7, // Elevation for shadow
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => ShortAnswerQuiz(userId: widget.userId)),
+                );
+              },
+              child: const Text('단답형 퀴즈'),
+            ),
+          
             const SizedBox(height: 20), // Add space between buttons
             ElevatedButton(
               style: ElevatedButton.styleFrom(
-                backgroundColor: const Color.fromARGB(255, 235, 181, 253), // Button color
-                padding: const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
+                backgroundColor:
+                    const Color.fromARGB(255, 235, 181, 253), // Button color
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 30, vertical: 15),
                 minimumSize: const Size(200, 60), // Button size
-                textStyle: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textStyle:
+                    const TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(10),
                 ),
@@ -107,7 +137,7 @@ class _QuizlistState extends State<Quizlist> {
                       builder: (context) => Quiz(userId: widget.userId)),
                 );
               },
-              child: const Text('퀴즈 맞추기'),
+              child: const Text('선택형 퀴즈'),
             ),
           ],
         ),
@@ -124,9 +154,12 @@ class _QuizlistState extends State<Quizlist> {
         unselectedItemColor: const Color.fromARGB(255, 235, 181, 253),
         items: const <BottomNavigationBarItem>[
           BottomNavigationBarItem(label: '홈', icon: Icon(Icons.home)),
-          BottomNavigationBarItem(label: '실천', icon: Icon(Icons.volunteer_activism)),
-          BottomNavigationBarItem(label: '커뮤니티', icon: Icon(Icons.mark_chat_unread)),
-          BottomNavigationBarItem(label: 'MY', icon: Icon(Icons.account_circle)),
+          BottomNavigationBarItem(
+              label: '실천', icon: Icon(Icons.volunteer_activism)),
+          BottomNavigationBarItem(
+              label: '커뮤니티', icon: Icon(Icons.mark_chat_unread)),
+          BottomNavigationBarItem(
+              label: 'MY', icon: Icon(Icons.account_circle)),
         ],
       ),
     );

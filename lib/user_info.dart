@@ -3,7 +3,7 @@ import 'package:boggle/do_list.dart';
 import 'package:boggle/myhome.dart';
 import 'package:boggle/mypage.dart';
 import 'package:boggle/community.dart';
-import 'package:google_fonts/google_fonts.dart'; 
+import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 
@@ -17,9 +17,11 @@ class UserInfo extends StatefulWidget {
 }
 
 class _UserInfoState extends State<UserInfo> {
-  late final TextEditingController _nicknameController = TextEditingController();
+  late final TextEditingController _nicknameController =
+      TextEditingController();
   late final TextEditingController _idController = TextEditingController();
-  late final TextEditingController _locationController = TextEditingController();
+  late final TextEditingController _locationController =
+      TextEditingController();
   late final TextEditingController _emailController = TextEditingController();
   var _index = 3; // 페이지 인덱스 0,1,2,3
 
@@ -30,7 +32,8 @@ class _UserInfoState extends State<UserInfo> {
   }
 
   void _fetchUserInfo() async {
-    final response = await http.get(Uri.parse('http://10.0.2.2:8000/user_info/${widget.userId}'));
+    final response = await http
+        .get(Uri.parse('http://10.0.2.2:8000/user_info/${widget.userId}'));
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes)); // UTF-8 디코딩
       setState(() {
@@ -70,90 +73,88 @@ class _UserInfoState extends State<UserInfo> {
   }
 
   void _updateUserInfo() async {
-  final String nickname = _nicknameController.text;
-  final String location = _locationController.text;
-  final String email = _emailController.text;
+    final String nickname = _nicknameController.text;
+    final String location = _locationController.text;
+    final String email = _emailController.text;
 
-  if (!isValidEmail(email)) {
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('이메일 형식 오류'),
-          content: Text('유효한 이메일을 입력하세요.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('확인'),
-            ),
-          ],
-        );
-      },
+    if (!isValidEmail(email)) {
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('이메일 형식 오류'),
+            content: Text('유효한 이메일을 입력하세요.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('확인'),
+              ),
+            ],
+          );
+        },
+      );
+      return;
+    }
+
+    final Map<String, String> data = {
+      'id': widget.userId,
+      'nickname': nickname,
+      'location': location,
+      'email': email,
+    };
+
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:8000/update_user_info/'),
+      body: json.encode(data),
+      headers: {'Content-Type': 'application/json'},
     );
-    return;
+
+    if (response.statusCode == 200) {
+      // 회원정보 업데이트 성공
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('성공'),
+            content: Text('회원정보가 성공적으로 수정되었습니다.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MyPage(userId: widget.userId)),
+                  );
+                },
+                child: Text('확인'),
+              ),
+            ],
+          );
+        },
+      );
+    } else {
+      // 회원정보 업데이트 실패
+      showDialog(
+        context: context,
+        builder: (BuildContext context) {
+          return AlertDialog(
+            title: Text('오류'),
+            content: Text('회원정보를 업데이트하는 중 오류가 발생했습니다.'),
+            actions: [
+              TextButton(
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+                child: Text('확인'),
+              ),
+            ],
+          );
+        },
+      );
+    }
   }
-
-  final Map<String, String> data = {
-    'id': widget.userId,
-    'nickname': nickname,
-    'location': location,
-    'email': email,
-  };
-
-  final response = await http.post(
-    Uri.parse('http://10.0.2.2:8000/update_user_info/'),
-    body: json.encode(data),
-    headers: {'Content-Type': 'application/json'},
-  );
-
-  if (response.statusCode == 200) {
-    // 회원정보 업데이트 성공
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('성공'),
-          content: Text('회원정보가 성공적으로 수정되었습니다.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.push(
-                              context,
-                              MaterialPageRoute(
-                                builder: (context) => MyPage(userId: widget.userId)),
-                            );
-              },
-              child: Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-  } else {
-    // 회원정보 업데이트 실패
-    showDialog(
-      context: context,
-      builder: (BuildContext context) {
-        return AlertDialog(
-          title: Text('오류'),
-          content: Text('회원정보를 업데이트하는 중 오류가 발생했습니다.'),
-          actions: [
-            TextButton(
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
-              child: Text('확인'),
-            ),
-          ],
-        );
-      },
-    );
-  }
-}
-
-
 
   bool isValidEmail(String email) {
     // 이메일 형식 검증 함수
@@ -168,12 +169,10 @@ class _UserInfoState extends State<UserInfo> {
       appBar: AppBar(
         automaticallyImplyLeading: false,
         backgroundColor: Color.fromARGB(255, 255, 255, 255),
-        title: Text(
-          ' BOGGLE',
-          style: GoogleFonts.londrinaSolid(
-            fontSize: 27,
-            fontWeight: FontWeight.normal,
-            color: Color.fromARGB(255, 196, 42, 250)),
+        title: Image.asset(
+          'image/boggleimg.png',
+          height: 28, // 이미지 높이 설정
+          fit: BoxFit.cover, // 이미지 fit 설정
         ),
         centerTitle: false,
       ),
@@ -324,4 +323,3 @@ class _UserInfoState extends State<UserInfo> {
     );
   }
 }
-

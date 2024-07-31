@@ -33,6 +33,7 @@ class Report {
     );
   }
 }
+
 class SewerReport extends StatefulWidget {
   final String title;
   final String userId;
@@ -41,30 +42,30 @@ class SewerReport extends StatefulWidget {
 
   @override
   State<SewerReport> createState() => _SewerReportState();
-   
-  // 
+
+  //
 }
 
-
 class _SewerReportState extends State<SewerReport> {
-      late String _userId;
-      final TextEditingController textController = TextEditingController();
-      final TextEditingController titleController = TextEditingController();
-      List<Report> reports = [];
-      bool isModifying = false;
-      int modifyingIndex = 0;
-      File? image;
-      int index = 1;
-      String _userPoints = '0';
+  late String _userId;
+  final TextEditingController textController = TextEditingController();
+  final TextEditingController titleController = TextEditingController();
+  List<Report> reports = [];
+  bool isModifying = false;
+  int modifyingIndex = 0;
+  File? image;
+  int index = 1;
+  String _userPoints = '0';
 
-       @override
-        void initState() {
-        super.initState();
-        _userId = widget.userId;
-         _fetchUserPoints();
-        getReportFromServer();
+  @override
+  void initState() {
+    super.initState();
+    _userId = widget.userId;
+    _fetchUserPoints();
+    getReportFromServer();
   }
-   Future<void> _fetchUserPoints() async {
+
+  Future<void> _fetchUserPoints() async {
     final response =
         await http.get(Uri.parse('http://10.0.2.2:8000/user_points/$_userId'));
     if (response.statusCode == 200) {
@@ -76,20 +77,18 @@ class _SewerReportState extends State<SewerReport> {
       throw Exception('Failed to load user points');
     }
   }
- @override
+
+  @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
         backgroundColor: Colors.white,
         iconTheme: IconThemeData(color: Colors.black),
-        title: Text(
-          'BOGGLE',
-          style: GoogleFonts.londrinaSolid(
-            fontSize: 27,
-            fontWeight: FontWeight.normal,
-            color: const Color.fromARGB(255, 196, 42, 250),
-          ),
+        title: Image.asset(
+          'image/boggleimg.png',
+          height: 28, // 이미지 높이 설정
+          fit: BoxFit.cover, // 이미지 fit 설정
         ),
       ),
       body: SingleChildScrollView(
@@ -118,9 +117,7 @@ class _SewerReportState extends State<SewerReport> {
                           ),
                         ),
                       ),
-                      
                     ),
-                    
                     Positioned(
                       left: 267,
                       top: 17,
@@ -318,7 +315,6 @@ class _SewerReportState extends State<SewerReport> {
                   ],
                 ),
               ),
-              
               SizedBox(
                 height: MediaQuery.of(context).size.height * 0.6,
                 child: ListView.builder(
@@ -388,6 +384,7 @@ class _SewerReportState extends State<SewerReport> {
       ),
     );
   }
+
   Future<void> pickImage() async {
     final ImagePicker picker = ImagePicker();
     final XFile? pickedFile =
@@ -399,7 +396,8 @@ class _SewerReportState extends State<SewerReport> {
       });
     }
   }
-    void navigateToPage(int index) {
+
+  void navigateToPage(int index) {
     Widget nextPage;
     switch (index) {
       case 0:
@@ -422,7 +420,8 @@ class _SewerReportState extends State<SewerReport> {
           context, MaterialPageRoute(builder: (context) => nextPage));
     }
   }
-    Future<void> deleteReportToServer(int id) async {
+
+  Future<void> deleteReportToServer(int id) async {
     final response =
         await http.delete(Uri.parse('http://10.0.2.2:8000/deleteReport/$id/'));
     if (response.statusCode == 200) {
@@ -431,72 +430,72 @@ class _SewerReportState extends State<SewerReport> {
       print("Failed to delete report. Status code: ${response.statusCode}");
     }
   }
-void showPointsEarnedDialog(BuildContext context, int points) {
-  showDialog(
-    context: context,
-    builder: (BuildContext context) {
-      return AlertDialog(
-        content: Container(
-          width: 200.0, // Adjust the width as needed
-          height: 40.0, // Adjust the height as needed
-          child: Center(
-            child: Text(
-              '$points 포인트 획득',
-              textAlign: TextAlign.center,
-              style: const TextStyle(
-                fontSize: 16, // Adjust the font size as needed
+
+  void showPointsEarnedDialog(BuildContext context, int points) {
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          content: Container(
+            width: 200.0, // Adjust the width as needed
+            height: 40.0, // Adjust the height as needed
+            child: Center(
+              child: Text(
+                '$points 포인트 획득',
+                textAlign: TextAlign.center,
+                style: const TextStyle(
+                  fontSize: 16, // Adjust the font size as needed
+                ),
               ),
             ),
           ),
-        ),
-        actions: [
-          Center(
-            child: TextButton(
-              child: const Text('확인'),
-              onPressed: () {
-                Navigator.of(context).pop();
-              },
+          actions: [
+            Center(
+              child: TextButton(
+                child: const Text('확인'),
+                onPressed: () {
+                  Navigator.of(context).pop();
+                },
+              ),
             ),
-          ),
-        ],
-      );
-    },
-  );
-}
-
-
-   Future<void> addReportToServer(Report report) async {
-  var request = http.MultipartRequest(
-    'POST',
-    Uri.parse('http://10.0.2.2:8000/addReport'),
-  );
-
-  if (image != null) {
-    request.files.add(await http.MultipartFile.fromPath('image', image!.path));
-  }
-
-  request.fields['work'] = report.work;
-  request.fields['title'] = report.title;
-
-  var response = await request.send();
-  if (response.statusCode == 200) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(
-        content: Text('신고 접수되었습니다'),
-      ),
+          ],
+        );
+      },
     );
-    _updateUserPoints(_userId, 25);
-    getReportFromServer();
-    
-    // Show the points earned dialog
-    showPointsEarnedDialog(context, 25);
-  } else {
-    print("Failed to add report. Status code: ${response.statusCode}");
   }
-}
 
+  Future<void> addReportToServer(Report report) async {
+    var request = http.MultipartRequest(
+      'POST',
+      Uri.parse('http://10.0.2.2:8000/addReport'),
+    );
 
-   Future<void> _updateUserPoints(String userId, int pointsToAdd) async {
+    if (image != null) {
+      request.files
+          .add(await http.MultipartFile.fromPath('image', image!.path));
+    }
+
+    request.fields['work'] = report.work;
+    request.fields['title'] = report.title;
+
+    var response = await request.send();
+    if (response.statusCode == 200) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          content: Text('신고 접수되었습니다'),
+        ),
+      );
+      _updateUserPoints(_userId, 25);
+      getReportFromServer();
+
+      // Show the points earned dialog
+      showPointsEarnedDialog(context, 25);
+    } else {
+      print("Failed to add report. Status code: ${response.statusCode}");
+    }
+  }
+
+  Future<void> _updateUserPoints(String userId, int pointsToAdd) async {
     final response = await http.post(
       Uri.parse('http://10.0.2.2:8000/update_user_points/'), // 슬래시 추가
       headers: <String, String>{
@@ -507,14 +506,15 @@ void showPointsEarnedDialog(BuildContext context, int points) {
         'pointsToAdd': pointsToAdd.toString(),
       },
     );
-  if (response.statusCode == 200) {
+    if (response.statusCode == 200) {
       print('Points updated successfully');
       _fetchUserPoints(); // Update user points after adding points
     } else {
       throw Exception('Failed to update points');
     }
   }
-   Future<void> updateReportToServer(int id, String title, String work) async {
+
+  Future<void> updateReportToServer(int id, String title, String work) async {
     var request = http.MultipartRequest(
       'POST',
       Uri.parse('http://10.0.2.2:8000/updateReport/$id/'),
@@ -530,11 +530,13 @@ void showPointsEarnedDialog(BuildContext context, int points) {
       print("Failed to update report. Status code: ${response.statusCode}");
     }
   }
-   String getToday() {
+
+  String getToday() {
     DateTime now = DateTime.now();
     return DateFormat('yyyy-MM-dd').format(now);
   }
-      Future<void> getReportFromServer() async {
+
+  Future<void> getReportFromServer() async {
     final response =
         await http.get(Uri.parse('http://10.0.2.2:8000/getReportList'));
     if (response.statusCode == 200) {
@@ -553,8 +555,6 @@ void showPointsEarnedDialog(BuildContext context, int points) {
     }
   }
 
-
-
   void navigateToDetailPage(Report report) {
     Navigator.push(
       context,
@@ -563,9 +563,7 @@ void showPointsEarnedDialog(BuildContext context, int points) {
       ),
     );
   }
-
 }
-
 
 class ReportDetailPage extends StatelessWidget {
   final Report report;
@@ -615,13 +613,3 @@ class ReportDetailPage extends StatelessWidget {
     );
   }
 }
-  
-
-
- 
-
-
-
-
-
-

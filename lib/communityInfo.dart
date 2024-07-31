@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 
 class CommunityPost{
@@ -6,6 +8,7 @@ class CommunityPost{
   final String postdate; // 작성 날짜
   final String postTitle; // 작성된 제목
   final String postContent;// 작성된 내용
+  final File? postImage; // 게시글 이미지
   int likeCount;//좋아요 개수
   int commentCount;// 댓글 개수
 
@@ -17,6 +20,7 @@ class CommunityPost{
       this.postContent, {
         this.likeCount = 0,
         this.commentCount = 0,
+        this.postImage,
       });
 }
 

@@ -89,6 +89,9 @@ flutter:
     - image/cleanserocr.png
     - image/commu.png
     - image/usericon.png
+    - image/boggleimg.png
+    - image/Poor.png
+    - image/FishBowl.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
