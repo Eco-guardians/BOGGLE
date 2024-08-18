@@ -3,8 +3,10 @@ import 'package:http/http.dart' as http;
 import 'package:boggle/do_list.dart';
 import 'package:boggle/mypage.dart';
 import 'package:boggle/community.dart';
+import 'package:boggle/myBOGGLE.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:convert';
+import 'dart:ui';
 
 class MyHomePage extends StatefulWidget {
   final String userId;
@@ -23,6 +25,8 @@ class _MyHomePageState extends State<MyHomePage> {
   String? _location; // 초기값을 null로 설정
   double _waterQuality = 1.1; // 수질 ppm 값
   late String _userId = widget.userId; // userId 할당
+  String QuizSolve = '미참여'; //Quiz 참여여부
+  int detCount = 0; //세제 인증 횟수
 
   @override
   void initState() {
@@ -79,6 +83,9 @@ class _MyHomePageState extends State<MyHomePage> {
       case 3:
         nextPage = MyPage(userId: widget.userId);
         break;
+      case 4:
+        nextPage = MyBoggle(nickname: _nickname, points: _points, rank: _rank);
+        break;
       default:
         nextPage = MyPage(userId: widget.userId);
     }
@@ -134,30 +141,10 @@ class _MyHomePageState extends State<MyHomePage> {
           child: TabBarView(
             children: [
               _buildAquariumTab(indicatorTextStyle),
-              _buildPointsTab(),
             ],
           ),
         ),
-        bottomNavigationBar: BottomNavigationBar(
-          onTap: (index) {
-            setState(() {
-              _index = index;
-            });
-            _navigateToPage(index);
-          },
-          currentIndex: _index,
-          selectedItemColor: Color.fromARGB(255, 196, 42, 250),
-          unselectedItemColor: Color.fromARGB(255, 235, 181, 253),
-          items: [
-            BottomNavigationBarItem(label: '홈', icon: Icon(Icons.home)),
-            BottomNavigationBarItem(
-                label: '실천', icon: Icon(Icons.volunteer_activism)),
-            BottomNavigationBarItem(
-                label: '커뮤니티', icon: Icon(Icons.mark_chat_unread)),
-            BottomNavigationBarItem(
-                label: 'MY', icon: Icon(Icons.account_circle)),
-          ],
-        ),
+        // BottomNavigationBar 제거
       ),
     );
   }
@@ -234,9 +221,9 @@ class _MyHomePageState extends State<MyHomePage> {
             mainAxisSpacing: 10,
             crossAxisSpacing: 10,
             children: [
-              _buildCard('내 보글', 'image/wave.png', '', '', 61, 168, 224),
+              _buildCard('내 보글', 'image/wave.png', '', '', 61, 168, 224, 4),
               _buildCard('내 포인트', 'image/gacha.png', _points.toString(), '/150',
-                  207, 154, 225)
+                  207, 154, 225, 4)
             ],
           ),
         ],
@@ -250,8 +237,18 @@ class _MyHomePageState extends State<MyHomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          _buildlongCard('활동하기', 'image/soap.png', 'image/gutter.png',
-              'image/Quiz.png', '0/1', '', 192, 155, 255),
+          _buildlongCard(
+              '활동하기',
+              'image/soap.png',
+              'image/gutter.png',
+              'image/Quiz.png',
+              detCount.toString() + '/1',
+              '신고하기',
+              QuizSolve,
+              192,
+              155,
+              255,
+              1),
           Text(
             ' ',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
@@ -263,18 +260,22 @@ class _MyHomePageState extends State<MyHomePage> {
           SizedBox(height: 10),
           _buildWaterQualityCard(),
           SizedBox(height: 10),
+          Text(
+            ' ',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
           _buildWaterTravelCard(),
+          SizedBox(height: 30),
         ],
       ),
     );
   }
 
-  Widget _buildCard(String title, String imagePath, String point,
-      String additionalInfo, int r, int g, int b) {
+  Widget _buildWaterTravelCard() {
     return Container(
+      height: 200,
       decoration: BoxDecoration(
-        color: Color.fromARGB(240, r, g, b),
-        borderRadius: BorderRadius.circular(35),
+        borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withOpacity(0.1),
@@ -284,43 +285,137 @@ class _MyHomePageState extends State<MyHomePage> {
           ),
         ],
       ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0), // 패딩 추가
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 좌측 정렬
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(20),
+        child: Stack(
           children: [
-            Text(
-              title,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold),
+            // 배경 이미지
+            Image.asset(
+              'image/water_travel.png', // 이미지 경로
+              fit: BoxFit.cover,
+              width: double.infinity,
+              height: double.infinity,
             ),
-            Row(
-              // Row 위젯으로 이미지 가로 정렬
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceEvenly, // 이미지 사이 공간 균일하게 배치
-              children: [
-                Image.asset(imagePath, height: 50),
-              ],
+            // 블러 필터
+            Positioned(
+              right: 0,
+              child: Container(
+                width: 130, // 블러 처리할 영역의 너비를 조정
+                height: 200,
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // 블러 강도 조정
+                  child: Container(
+                    color: const Color.fromARGB(255, 183, 224, 245)
+                        .withOpacity(0.8), // 블러 효과 뒤의 색상
+                  ),
+                ),
+              ),
             ),
-            SizedBox(height: 10),
-            SizedBox(height: 5),
-            Text(
-              point,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 26,
-                  fontWeight: FontWeight.bold),
-            ),
-            Text(
-              additionalInfo,
-              style: TextStyle(
-                  color: Colors.purple,
-                  fontSize: 14,
-                  fontWeight: FontWeight.bold),
+            // 텍스트와 아이콘
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    '내 주변 물 여행지',
+                    style: TextStyle(
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold,
+                        color: Colors.black),
+                  ),
+                  Spacer(),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.end,
+                    children: [
+                      Column(
+                        crossAxisAlignment: CrossAxisAlignment.end,
+                        children: [
+                          Icon(
+                            Icons.luggage,
+                            color: Colors.lightBlue,
+                            size: 50,
+                          ),
+                          SizedBox(height: 8),
+                          Text(
+                            '대청댐',
+                            style: TextStyle(
+                                fontSize: 20,
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black),
+                          ),
+                        ],
+                      ),
+                    ],
+                  ),
+                ],
+              ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildCard(String title, String imagePath, String point,
+      String additionalInfo, int r, int g, int b, int index) {
+    return GestureDetector(
+      onTap: () {
+        // 여기에 페이지 이동 기능을 추가
+        _navigateToPage(index); // 예: index 1에 해당하는 페이지로 이동
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Color.fromARGB(240, r, g, b),
+          borderRadius: BorderRadius.circular(35),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 2),
+            ),
+          ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0), // 패딩 추가
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 좌측 정렬
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 15),
+              Row(
+                // Row 위젯으로 이미지 가로 정렬
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceEvenly, // 이미지 사이 공간 균일하게 배치
+                children: [
+                  Image.asset(imagePath, height: 60),
+                ],
+              ),
+              Text(
+                point,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 20,
+                    fontWeight: FontWeight.bold),
+              ),
+              Text(
+                additionalInfo,
+                textAlign: TextAlign.center,
+                style: TextStyle(
+                    color: Colors.purple,
+                    fontSize: 10,
+                    fontWeight: FontWeight.bold),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -367,62 +462,87 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   Widget _buildlongCard(
-    String title,
-    String imagePath1,
-    String imagePath2,
-    String imagePath3,
-    String point,
-    String additionalInfo,
-    int r,
-    int g,
-    int b,
-  ) {
-    return Container(
-      decoration: BoxDecoration(
-        color: Color.fromARGB(240, r, g, b),
-        borderRadius: BorderRadius.circular(35),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0), // 패딩 추가
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 좌측 정렬
-          children: [
-            Text(
-              title,
-              style: TextStyle(
-                  color: Colors.white,
-                  fontSize: 16,
-                  fontWeight: FontWeight.bold),
-            ),
-            Row(
-              // Row 위젯으로 이미지 가로 정렬
-              mainAxisAlignment:
-                  MainAxisAlignment.spaceEvenly, // 이미지 사이 공간 균일하게 배치
-              children: [
-                Image.asset(imagePath1, height: 50),
-                Image.asset(imagePath2, height: 50),
-                Image.asset(imagePath3, height: 50),
-              ],
-            ),
-            SizedBox(height: 10),
-            SizedBox(height: 5),
-            Text(
-              point,
-              style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              additionalInfo,
-              style: TextStyle(fontSize: 14),
+      String title,
+      String imagePath1,
+      String imagePath2,
+      String imagePath3,
+      String point,
+      String additionalInfo1,
+      String additionalInfo2,
+      int r,
+      int g,
+      int b,
+      int index) {
+    return GestureDetector(
+      onTap: () {
+        // 여기에 페이지 이동 기능을 추가
+        _navigateToPage(index); // 예: index 2에 해당하는 페이지로 이동
+      },
+      child: Container(
+        decoration: BoxDecoration(
+          color: Color.fromARGB(240, r, g, b),
+          borderRadius: BorderRadius.circular(35),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 2),
             ),
           ],
+        ),
+        child: Padding(
+          padding: const EdgeInsets.all(16.0), // 패딩 추가
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start, // 텍스트 좌측 정렬
+            children: [
+              Text(
+                title,
+                style: TextStyle(
+                    color: Colors.white,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold),
+              ),
+              SizedBox(height: 15),
+              Row(
+                // Row 위젯으로 이미지 가로 정렬
+                mainAxisAlignment:
+                    MainAxisAlignment.spaceEvenly, // 이미지 사이 공간 균일하게 배치
+                children: [
+                  Image.asset(imagePath1, height: 50),
+                  Image.asset(imagePath2, height: 50),
+                  Image.asset(imagePath3, height: 50),
+                ],
+              ),
+              SizedBox(height: 25),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceEvenly, // 수평으로 중앙 정렬
+                children: [
+                  Text(
+                    point,
+                    style: TextStyle(
+                        color: Color.fromARGB(255, 163, 109, 255),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    additionalInfo1,
+                    style: TextStyle(
+                        color: Color.fromARGB(255, 163, 109, 255),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                  Text(
+                    additionalInfo2,
+                    style: TextStyle(
+                        color: Color.fromARGB(255, 163, 109, 255),
+                        fontSize: 16,
+                        fontWeight: FontWeight.bold),
+                  ),
+                ],
+              )
+            ],
+          ),
         ),
       ),
     );
@@ -493,226 +613,6 @@ class _MyHomePageState extends State<MyHomePage> {
               Icons.water_drop, Colors.red, '매우 나쁨', '이용 불가능', 10.0, 100),
         ],
       ),
-    );
-  }
-
-  Widget _buildWaterTravelCard() {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        image: DecorationImage(
-          image: AssetImage('image/water_travel.png'),
-          fit: BoxFit.cover,
-        ),
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: [
-          Padding(
-            padding: const EdgeInsets.all(8.0),
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  '내 주변 물 여행지',
-                  style: TextStyle(
-                      fontSize: 16,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black),
-                )
-              ],
-            ),
-          ),
-        ],
-      ),
-    );
-  }
-
-  Widget _buildPointsTab() {
-    return SingleChildScrollView(
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Container(
-              width: double.infinity, // 가로로 꽉 채우기
-              padding: EdgeInsets.all(16.0),
-              decoration: BoxDecoration(
-                color: Color.fromARGB(255, 240, 240, 240), // 컨테이너 색상 변경
-                borderRadius: BorderRadius.circular(25.0), // 모서리를 25% 둥글게 설정
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.2), // 그림자 색상 및 투명도
-                    spreadRadius: 1,
-                    blurRadius: 3,
-                    offset: Offset(0, 3), // 그림자 위치
-                  ),
-                ],
-                border: null, // 외곽선 제거
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  RichText(
-                    text: TextSpan(
-                      text: ' ',
-                      style: GoogleFonts.notoSans(
-                        fontSize: 16,
-                        fontWeight: FontWeight.normal,
-                        color: Colors.black,
-                      ),
-                      children: <TextSpan>[
-                        TextSpan(
-                          text: _nickname,
-                          style: TextStyle(
-                              fontWeight: FontWeight.bold, fontSize: 20),
-                        ),
-                        TextSpan(
-                          text: ' 님의 포인트',
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 3),
-                  Text(
-                    '   $_points P',
-                    style: GoogleFonts.notoSans(
-                      fontSize: 35,
-                      fontWeight: FontWeight.bold,
-                      color: Colors.black,
-                    ),
-                  ),
-                ],
-              ),
-            ),
-            SizedBox(height: 40),
-            Text(
-              '포인트 리포트',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '나의 포인트를 비교하고 분석해보세요',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
-            ),
-            SizedBox(height: 25),
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-              crossAxisAlignment: CrossAxisAlignment.end, // 그래프를 아래쪽에 정렬
-              children: [
-                _buildPointsColumn(
-                    '1,136 P', Colors.grey, '전체 사용자 평균 포인트', 100),
-                _buildPointsColumn('$_points P',
-                    Color.fromARGB(255, 196, 42, 250), '나의 포인트', _points),
-              ],
-            ),
-            SizedBox(height: 40),
-            Text(
-              '나의 순위',
-              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
-            ),
-            Text(
-              '나는 상위 몇 프로?',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
-            ),
-            Text(
-              '나의 포인트 순위를 알려드립니다.',
-              style: TextStyle(fontSize: 15, fontWeight: FontWeight.normal),
-            ),
-            SizedBox(height: 10),
-            Center(
-              child: Column(
-                children: [
-                  SizedBox(
-                    width: 300,
-                    height: 300,
-                    child: Stack(
-                      children: [
-                        Center(
-                            child: Container(
-                          width: 200,
-                          height: 200,
-                          child: CircularProgressIndicator(
-                            value: 0.7,
-                            strokeWidth: 40, // 원의 두께를 더 두껍게 설정
-                            color: Color.fromARGB(255, 196, 42, 250),
-                            backgroundColor: Colors.grey[200],
-                          ),
-                        )),
-                        Center(
-                          child: Text(
-                            '상위 70%',
-                            style: TextStyle(
-                              fontSize: 24,
-                              fontWeight: FontWeight.bold,
-                              color: Color.fromARGB(255, 196, 42, 250),
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  SizedBox(height: 20),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.emoji_events, color: Colors.amber, size: 32),
-                      SizedBox(width: 10),
-                      Text(
-                        '$_nickname 님은 $_rank등 입니다.',
-                        style: TextStyle(
-                          fontSize: 16,
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildPointsColumn(
-      String points, Color color, String label, int height) {
-    return Column(
-      children: [
-        Text(
-          points,
-          style: TextStyle(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: color,
-          ),
-        ),
-        SizedBox(height: 10),
-        Container(
-          width: 50,
-          height: height.toDouble(),
-          decoration: BoxDecoration(
-            color: color,
-            borderRadius: BorderRadius.only(
-              topLeft: Radius.circular(10), // 상단 좌측 둥글게
-              topRight: Radius.circular(10), // 상단 우측 둥글게
-            ),
-            border: Border.all(color: Colors.black), // 검은색 외곽선
-          ),
-        ),
-        SizedBox(height: 10),
-        Text(label),
-      ],
     );
   }
 
