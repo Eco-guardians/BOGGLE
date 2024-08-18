@@ -84,7 +84,11 @@ class _MyHomePageState extends State<MyHomePage> {
         nextPage = MyPage(userId: widget.userId);
         break;
       case 4:
-        nextPage = MyBoggle(nickname: _nickname, points: _points, rank: _rank);
+        nextPage = MyBoggle(
+            nickname: _nickname,
+            points: _points,
+            rank: _rank,
+            userId: widget.userId);
         break;
       default:
         nextPage = MyPage(userId: widget.userId);
@@ -111,7 +115,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
     return DefaultTabController(
       // DefaultTabController로 Scaffold 전체를 감쌈
-      length: 2, // 상단 탭의 수
+      length: 0, // 상단 탭의 수
       child: Scaffold(
         appBar: AppBar(
           automaticallyImplyLeading: false,
@@ -126,8 +130,28 @@ class _MyHomePageState extends State<MyHomePage> {
             ],
           ),
           centerTitle: false,
+          actions: [
+            Padding(
+              padding: const EdgeInsets.only(right: 14.0), // 오른쪽에 16px 여백 추가
+              child: IconButton(
+                icon: CircleAvatar(
+                  radius: 18,
+                  backgroundImage:
+                      AssetImage('image/usericon.png'), // 사용자 프로필 이미지 경로
+                ),
+                onPressed: () {
+                  // 프로필 아이콘 클릭 시 동작 추가
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                        builder: (context) => MyPage(userId: widget.userId)),
+                  );
+                },
+              ),
+            ),
+          ],
           bottom: PreferredSize(
-            preferredSize: Size.fromHeight(50),
+            preferredSize: Size.fromHeight(25),
             child: Align(
               alignment: Alignment.centerLeft,
               child: Padding(
@@ -136,6 +160,7 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
         ),
+
         body: Container(
           color: Colors.white, // 배경색을 흰색으로 설정
           child: TabBarView(
@@ -249,6 +274,12 @@ class _MyHomePageState extends State<MyHomePage> {
               155,
               255,
               1),
+          Text(
+            ' ',
+            style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+          ),
+          _buildlongCard(
+              '커뮤니티', ' ', ' ', ' ', ' ', ' ', ' ', 148, 128, 183, 2),
           Text(
             ' ',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),

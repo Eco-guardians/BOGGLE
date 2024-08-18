@@ -1,25 +1,21 @@
 import 'package:flutter/material.dart';
-import 'package:http/http.dart' as http;
 import 'package:boggle/myhome.dart'; // MyHomePage
-import 'package:boggle/do_list.dart';
-import 'package:boggle/mypage.dart';
-import 'package:boggle/community.dart';
-import 'package:boggle/myBOGGLE.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:convert';
 import 'dart:ui';
 
 class MyBoggle extends StatelessWidget {
   final String nickname;
   final int points;
   final int rank;
+  final String userId; // 추가된 userId 필드
 
-  const MyBoggle({
-    Key? key,
-    required this.nickname,
-    required this.points,
-    required this.rank,
-  }) : super(key: key);
+  const MyBoggle(
+      {Key? key,
+      required this.nickname,
+      required this.points,
+      required this.rank,
+      required this.userId}) // userId를 받아옴
+      : super(key: key);
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +26,11 @@ class MyBoggle extends StatelessWidget {
         leading: IconButton(
           icon: Icon(Icons.arrow_back, color: Colors.black),
           onPressed: () {
-            Navigator.pop(context); // 올바른 뒤로 가기 기능
+            Navigator.pushReplacement(
+                context,
+                MaterialPageRoute(
+                    builder: (context) => MyHomePage(
+                        userId: userId))); // userId를 전달하여 MyHomePage로 이동
           },
         ),
         title: Row(
