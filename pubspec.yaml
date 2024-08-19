@@ -95,6 +95,9 @@ flutter:
     - image/gacha.png
     - image/soap.png
     - image/water_travel.png
+    - image/community1.png
+    - image/community2.png
+    - image/community3.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware

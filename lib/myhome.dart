@@ -278,8 +278,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ' ',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          _buildlongCard(
-              '커뮤니티', ' ', ' ', ' ', ' ', ' ', ' ', 148, 128, 183, 2),
+          _buildlongCard('커뮤니티', 'image/community1.png', 'image/community3.png',
+              'image/community2.png', ' ', ' ', ' ', 148, 128, 183, 2),
           Text(
             ' ',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
