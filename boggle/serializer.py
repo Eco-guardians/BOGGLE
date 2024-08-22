@@ -15,10 +15,12 @@ class QuizSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# serializers.py
+
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
-        fields = ('id', 'work','title','image')
+        fields = ['id', 'title', 'work', 'image', 'latitude', 'longitude']
 
 class UserlistSerializer(serializers.ModelSerializer):
     class Meta:

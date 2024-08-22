@@ -3,7 +3,7 @@ from django.conf import settings
 from django.conf.urls.static import static
 from boggle import views
 from django.urls import path
-import rest_framework
+
 
 
 
@@ -22,9 +22,10 @@ urlpatterns = [
 
 
     path('addReport', views.addReport, name='addReport'),
-    path('getReportList', views.getReportList, name='getReportList'),
+     path('getReportList/', views.getReportList, name='getReportList'),
     path('updateReport/<int:pk>/', views.updateReport, name='updateReport'),
     path('deleteReport/<int:pk>/', views.deleteReport, name='deleteReport'),
+
 
     path('register/', views.register_user, name='register_user'), 
     path('find_user_id/', views.find_user_id, name='find_user_id'),

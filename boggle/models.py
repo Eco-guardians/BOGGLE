@@ -23,14 +23,19 @@ class Dictionary(models.Model):
 
     def __str__(self):
         return self.hNm if self.hNm else "Unnamed"
+# models.py
 
+from django.db import models
 
 class Report(models.Model):
     id = models.AutoField(primary_key=True)
     work = models.CharField(max_length=400, default='null')
     title = models.CharField(max_length=400, default='null')
     image = models.ImageField(upload_to='task_images_2/', null=True, blank=True)
+    latitude = models.FloatField(null=True, blank=True)  # 위도
+    longitude = models.FloatField(null=True, blank=True)  # 경도
 
+  
 class Userlist(models.Model):
     id = models.CharField(primary_key=True, unique=True, max_length=50)
     nickname = models.CharField(null=False, max_length=30)  

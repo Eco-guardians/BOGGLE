@@ -437,15 +437,22 @@ def updateReport(request, pk):
     report.work = request.data.get('work', report.work)
     if 'image' in request.FILES:
         report.image = request.FILES['image']
+    report.latitude = request.data.get('latitude', report.latitude)
+    report.longitude = request.data.get('longitude', report.longitude)
+    
     report.save()
     serializer = ReportSerializer(report)
     return Response(serializer.data, status=200)
 
+
 @api_view(['DELETE'])
 def deleteReport(request, pk):
-    Report.objects.get(id=pk).delete()
-    return Response(status=200)
-
+    try:
+        report = Report.objects.get(id=pk)
+        report.delete()
+        return Response(status=204)  # 204 No Content
+    except Report.DoesNotExist:
+        return Response({'error': 'Report not found'}, status=404)  # 404 Not Found
 
 #회원 정보에 점수 추가하기 
 from django.http import JsonResponse
