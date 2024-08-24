@@ -3,7 +3,8 @@ from django.conf import settings
 from django.conf.urls.static import static
 from boggle import views
 from django.urls import path
-
+import rest_framework
+from . import views
 
 
 
@@ -22,10 +23,9 @@ urlpatterns = [
 
 
     path('addReport', views.addReport, name='addReport'),
-     path('getReportList/', views.getReportList, name='getReportList'),
+    path('getReportList', views.getReportList, name='getReportList'),
     path('updateReport/<int:pk>/', views.updateReport, name='updateReport'),
     path('deleteReport/<int:pk>/', views.deleteReport, name='deleteReport'),
-
 
     path('register/', views.register_user, name='register_user'), 
     path('find_user_id/', views.find_user_id, name='find_user_id'),
@@ -40,6 +40,7 @@ path('update_user_points/', views.update_user_points, name='update_user_points')
     path('update_user_info/', views.update_user_info, name='update_user_info'),
     path('change_password/', views.change_password, name='change_password'),
     path('withdraw/<str:user_id>/', views.withdraw, name='withdraw'),
+    path('detect/', views.detect_view, name='detect'),
 
     # community/urls.py
     path('create_post/', views.create_community_post, name='create_post'),
