@@ -516,3 +516,27 @@ def get_water_quality(request):
         return JsonResponse({'error': 'Failed to load water quality data'}, status=response.status_code)
 
 
+
+# community/views.py
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from django.views.decorators.csrf import csrf_exempt
+from .models import CommunityPost
+from .serializer import CommunityPostSerializer
+
+@api_view(['POST'])
+def create_community_post(request):
+    if request.method == 'POST':
+        serializer = CommunityPostSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print("Validation errors:", serializer.errors)  # Add this line
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+def get_recruitment_posts(request):
+    # post_type이 '참여자 모집'인 게시물만 조회
+    posts = CommunityPost.objects.filter(post_type='참여자 모집')
+    post_list = list(posts.values())  # QuerySet을 리스트로 변환
+    return JsonResponse(post_list, safe=False)
