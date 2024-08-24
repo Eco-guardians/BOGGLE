@@ -540,6 +540,8 @@ def get_water_quality(request):
 
 
 
+
+#YOLO 연결 및 이미지 전처리 -> 객체 탐지 -> 결과 반환
 logger = logging.getLogger('boggle')
 
 # 모델 로드
