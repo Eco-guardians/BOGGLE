@@ -1,9 +1,5 @@
-import 'dart:io';
 import 'package:flutter/material.dart';
-import 'package:image_picker/image_picker.dart';
-import 'package:google_mlkit_text_recognition/google_mlkit_text_recognition.dart';
-import 'package:boggle/cleanser_certification.dart';
-import 'model.dart';
+import 'take_a_picture.dart';
 
 class Detergent extends StatefulWidget {
   final String title;
@@ -15,48 +11,6 @@ class Detergent extends StatefulWidget {
 }
 
 class _DetergentState extends State<Detergent> {
-  String scannedText = '';
-  File? imageFile;
-
-  Future<void> pickImage() async {
-    final ImagePicker picker = ImagePicker();
-    final XFile? pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
-    if (pickedFile != null) {
-      imageFile = File(pickedFile.path);
-      getRecognizedText(pickedFile);
-    }
-  }
-
-  void getRecognizedText(XFile image) async {
-    try {
-      final InputImage inputImage = InputImage.fromFilePath(image.path);
-      final textRecognizer = TextRecognizer(script: TextRecognitionScript.korean);
-      RecognizedText recognizedText = await textRecognizer.processImage(inputImage);
-
-      scannedText = recognizedText.text.replaceAll('\n', ' ');
-      setState(() {});
-
-      await textRecognizer.close();
-
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => Textcertification(
-            recognizedText: scannedText,
-            imageFile: imageFile!,
-          ),
-        ),
-      ).then((result) {
-        if (result != null && result is Certification) {
-          Navigator.pop(context, result); // result를 다시 상위 페이지로 전달
-        }
-      });
-    } catch (e) {
-      print("Error recognizing text: $e");
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -65,7 +19,7 @@ class _DetergentState extends State<Detergent> {
         backgroundColor: Colors.white,
         centerTitle: true,
         title: const Text(
-          '세제 인증',
+          '세제 인증 가이드',
           style: TextStyle(color: Colors.black),
         ),
         leading: IconButton(
@@ -84,7 +38,7 @@ class _DetergentState extends State<Detergent> {
             children: [
               const SizedBox(height: 35),
               const Text(
-                '정확한 세제 인증을 위해 사진을 준비해 주세요.\n아래의 등록하기 버튼을 눌러 사진을 불러와주세요.',
+                '사진을 촬영하면, AI가 친환경 마크를 자동으로\n인식하여 세제 인증을 진행합니다.',
                 style: TextStyle(fontSize: 16),
                 textAlign: TextAlign.center,
               ),
@@ -92,7 +46,7 @@ class _DetergentState extends State<Detergent> {
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 20.0),
                 child: Image.asset(
-                  'image/cleanserocr.png',
+                  'image/cleanser_detection.png',
                   fit: BoxFit.cover,
                   width: MediaQuery.of(context).size.width * 0.8,
                   height: MediaQuery.of(context).size.height * 0.3,
@@ -100,13 +54,20 @@ class _DetergentState extends State<Detergent> {
               ),
               const SizedBox(height: 35),
               const Text(
-                '사진을 등록하면, 위의 그림과 같이 텍스트를 인식하여\n자동으로 세제의 이름이 입력됩니다.',
+                'AI가 정확하게 인식 할 수 있도록 화면에 \n친환경 마크 전체가 보이도록 촬영해 주세요.',
                 style: TextStyle(fontSize: 15),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 50),
               ElevatedButton(
-                onPressed: pickImage,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => TakeAPicture(),
+                    ),
+                  );
+                },
                 style: ElevatedButton.styleFrom(
                   minimumSize: const Size(double.infinity, 50),
                   backgroundColor: const Color.fromARGB(255, 196, 42, 250),
@@ -115,7 +76,7 @@ class _DetergentState extends State<Detergent> {
                   ),
                 ),
                 child: const Text(
-                  '등록하기',
+                  '촬영하기',
                   style: TextStyle(fontSize: 18, color: Colors.white),
                 ),
               ),

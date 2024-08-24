@@ -1,13 +1,10 @@
 import 'dart:io';
-
-import 'package:boggle/model.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'model.dart';
 
 class CertificationPage extends StatelessWidget {
-  const CertificationPage({Key? key, required this.certification})
-      : super(key: key);
+  const CertificationPage({Key? key, required this.certification}) : super(key: key);
 
   final Certification certification;
 
@@ -16,42 +13,52 @@ class CertificationPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white,
       appBar: AppBar(
-        automaticallyImplyLeading: false,
-        backgroundColor: Color.fromARGB(255, 255, 255, 255),
+        automaticallyImplyLeading: true, // 뒤로가기 버튼 표시
+        backgroundColor: const Color.fromARGB(255, 255, 255, 255),
         title: Image.asset(
           'image/boggleimg.png',
-          height: 28, // 이미지 높이 설정
-          fit: BoxFit.cover, // 이미지 fit 설정
+          height: 28,
+          fit: BoxFit.cover,
         ),
       ),
-      body: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center, //가운데 정렬
-          children: [
-            SizedBox(
-              height: 350,
-              width: 350,
-              child: Image.file(certification.cleanserImage as File),
+      body: SingleChildScrollView(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(20.0),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Text(
+                  '인증 여부: ${certification.certificationCheck}',
+                  style: GoogleFonts.ibmPlexSansKr(
+                    fontSize: 23,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Text(
+                  '인증확인 일자: ${certification.certificationDate}',
+                  style: const TextStyle(fontSize: 18),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 200,
+                  width: double.infinity,
+                  child: Image.file(certification.cleanserImage, fit: BoxFit.cover),
+                ),
+                const SizedBox(height: 20),
+                SizedBox(
+                  height: 200,
+                  width: double.infinity,
+                  child: Image.file(certification.receiptImage, fit: BoxFit.cover),
+                ),
+              ],
             ),
-            const SizedBox(
-              height: 40,
-            ),
-            Text(
-              certification.cleansername,
-              style: GoogleFonts.ibmPlexSansKr(
-                  fontSize: 23, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(
-              height: 10,
-            ),
-            Text(
-              '인증확인 일자 : ' + certification.certificationdate,
-              style:
-                  const TextStyle(fontSize: 18, fontWeight: FontWeight.normal),
-            ),
-          ],
+          ),
         ),
       ),
     );
   }
 }
+
