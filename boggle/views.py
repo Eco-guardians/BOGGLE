@@ -540,9 +540,7 @@ def get_water_quality(request):
 
 
 
-# 로그 설정
 logger = logging.getLogger('boggle')
-
 
 # 모델 로드
 try:
@@ -551,9 +549,6 @@ try:
     model.eval()  # 모델을 평가 모드로 설정
 except Exception as e:
     logger.error(f"Error loading YOLO model: {e}")
-finally:
-    # 원래의 Path 설정을 복원
-    pathlib.PosixPath = temp
 
 def preprocess_image(image_path):
     """ 이미지를 전처리하여 모델에 맞게 변환 """
@@ -572,7 +567,6 @@ def preprocess_image(image_path):
     img = img.permute(2, 0, 1)  # HWC to CHW
     img = img.unsqueeze(0)  # 배치 차원 추가
     return img
-
 
 LABELS = ['eco_mark']  # 단일 라벨 리스트
 
@@ -600,37 +594,42 @@ def detect_objects(image_path):
         results_dict.append(result)
 
     return results_dict
+
 @csrf_exempt
 def detect_view(request):
     """ 객체 탐지 뷰: POST 요청에서 이미지를 받아 객체 탐지를 수행 """
     logger.debug("detect_view called")
 
     if request.method == 'POST' and request.FILES.get('image'):
-        # 이미지를 파일로 저장
-        image = request.FILES['image']
-        image_relative_path = default_storage.save('temp.jpg', ContentFile(image.read()))
-        image_full_path = default_storage.path(image_relative_path)
-
-        # 파일이 저장된 경로를 로그로 출력
-        logger.debug(f"Image saved at: {image_full_path}")
-        logger.debug("Image received")
-
-        # 파일 존재 여부 확인
-        if not default_storage.exists(image_relative_path):
-            logger.error(f"Image not found at path: {image_full_path}")
-            return JsonResponse({'error': 'Image not found after saving.'}, status=500)
-
-        logger.debug(f"File found at expected path: {image_full_path}")
-
         try:
-            # 파일 경로가 모델로 전달되기 전에 올바르게 전달되는지 확인
-            logger.debug(f"Processing image at: {image_full_path}")
+            # 이미지를 파일로 저장하기 전 기존 파일 삭제
+            image_relative_path = 'temp.jpg'
+            if default_storage.exists(image_relative_path):
+                default_storage.delete(image_relative_path)  # 기존 파일 삭제
 
-            results = detect_objects(image_full_path)
+            # 이미지를 파일로 저장
+            image = request.FILES['image']
+            image_full_path = default_storage.save(image_relative_path, ContentFile(image.read()))
+
+            # 파일이 저장된 경로를 로그로 출력
+            logger.debug(f"Image saved at: {default_storage.path(image_full_path)}")
+            logger.debug("Image received")
+
+            # 파일 존재 여부 확인
+            if not default_storage.exists(image_relative_path):
+                logger.error(f"Image not found at path: {default_storage.path(image_full_path)}")
+                return JsonResponse({'error': 'Image not found after saving.'}, status=500)
+
+            logger.debug(f"File found at expected path: {default_storage.path(image_full_path)}")
+
+            # 파일 경로가 모델로 전달되기 전에 올바르게 전달되는지 확인
+            logger.debug(f"Processing image at: {default_storage.path(image_full_path)}")
+
+            results = detect_objects(default_storage.path(image_full_path))
             logger.debug(f"Detection results: {results}")
 
             # 결과를 JSON으로 변환하여 반환
-            return JsonResponse(results, safe=False)  # 여기서 safe=False 추가
+            return JsonResponse(results, safe=False)  # safe=False로 반환
 
         except FileNotFoundError as e:
             logger.error(f"File not found during detection: {e}")
@@ -638,14 +637,7 @@ def detect_view(request):
         except Exception as e:
             logger.error(f"Error during object detection: {e}")
             return JsonResponse({'error': str(e)}, status=500)
-        finally:
-            # 모든 처리가 끝난 후 파일 삭제
-            try:
-                if default_storage.exists(image_relative_path):
-                    default_storage.delete(image_relative_path)
-                    logger.debug("Temporary image file deleted")
-            except Exception as cleanup_error:
-                logger.error(f"Error during cleanup: {cleanup_error}")
+        # finally 블록 제거 -> 파일 삭제하지 않음
     else:
         logger.error("Invalid request")
         return JsonResponse({'error': 'Invalid request'}, status=400)

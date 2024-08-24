@@ -22,9 +22,8 @@ class CleanserCertification extends StatefulWidget {
 
 class _CleanserCertificationState extends State<CleanserCertification> {
   bool isEcoMarkCertified = false; // 친환경 세제 마크 인증 초기값: 인증 안됨
-  bool isReceiptUploaded = false; // 영수증 첨부 여부
   File? receiptImage; // 첨부한 영수증 이미지
-  List<dynamic>? detectionResults; // 객체 탐지 결과를 저장할 리스트
+  dynamic detectionResult; // 객체 탐지 결과를 저장할 변수 (하나만 저장)
 
   @override
   void initState() {
@@ -44,7 +43,7 @@ class _CleanserCertificationState extends State<CleanserCertification> {
     try {
       final request = http.MultipartRequest(
           'POST',
-          Uri.parse('http://10.0.2.2:8000/detect/')  // Django 서버 URL로 교체
+          Uri.parse('http://10.0.2.2:8000/detect/')  // 각자의 에뮬레이터에 맞추기
       );
 
       // 이미지 파일을 multipart 형식으로 추가
@@ -59,10 +58,18 @@ class _CleanserCertificationState extends State<CleanserCertification> {
       if (response.statusCode == 200) {
         final responseBody = await response.stream.bytesToString();
         setState(() {
-          detectionResults = json.decode(responseBody);  // JSON 파싱하여 결과 저장
+          final results = json.decode(responseBody);  // JSON 파싱하여 결과 저장
 
-          // 결과를 바탕으로 친환경 세제 마크가 감지되었는지 판단
-          isEcoMarkCertified = _checkEcoMarkCertification(detectionResults!);
+          // 결과에서 가장 높은 신뢰도의 eco_mark를 찾기
+          detectionResult = results.firstWhere(
+                (result) => result['name'] == 'eco_mark' && result['confidence'] >= 0.9,
+            orElse: () => null,
+          );
+
+          // 가장 높은 신뢰도의 eco_mark가 있으면 체크박스를 체크
+          if (detectionResult != null) {
+            isEcoMarkCertified = true;
+          }
         });
       } else {
         print('Failed to detect objects. Status code: ${response.statusCode}');
@@ -72,22 +79,11 @@ class _CleanserCertificationState extends State<CleanserCertification> {
     }
   }
 
-  // 객체 탐지 결과를 바탕으로 친환경 세제 마크가 감지되었는지 판단하는 메서드
-  bool _checkEcoMarkCertification(List<dynamic> results) {
-    for (var result in results) {
-      if (result['name'] == 'eco_mark') {  // 친환경 세제 마크 라벨을 'eco_mark'라고 가정
-        return true;
-      }
-    }
-    return false;
-  }
-
   Future<void> _pickReceiptImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
     if (pickedFile != null) {
       setState(() {
-        isReceiptUploaded = true;
         receiptImage = File(pickedFile.path);
       });
 
@@ -140,18 +136,11 @@ class _CleanserCertificationState extends State<CleanserCertification> {
                 height: 150,
               ),
               const SizedBox(height: 20),
-              detectionResults == null
+              detectionResult == null
                   ? CircularProgressIndicator()  // 결과를 기다리는 동안 로딩 표시
-                  : Column(
-                children: detectionResults!.map((result) {
-                  double confidence = result['confidence'] * 100;
-                  print("Confidence value (original): ${result['confidence']}");
-                  print("Confidence value (scaled): ${confidence}");
-                  return Text(
-                    "Detected: ${result['name']}, Confidence: ${confidence.toStringAsFixed(2)}%",
-                    style: TextStyle(fontSize: 14),
-                  );
-                }).toList(),
+                  : Text(
+                "Detected: ${detectionResult['name']}, Confidence: ${(detectionResult['confidence'] * 100).toStringAsFixed(2)}%",
+                style: TextStyle(fontSize: 14),
               ),
               const SizedBox(height: 20),
               const Text(
@@ -162,43 +151,36 @@ class _CleanserCertificationState extends State<CleanserCertification> {
               const SizedBox(height: 30),
               CheckboxListTile(
                 title: const Text('친환경 세제 마크 인증 완료'),
-                value: isEcoMarkCertified,
-                onChanged: (bool? value) {
-                  setState(() {
-                    isEcoMarkCertified = value ?? false;
-                  });
-                },
+                value: isEcoMarkCertified,  // 탐지 결과에 따라 자동으로 체크
+                onChanged: null,  // 사용자가 체크박스를 수동으로 조작하지 못하도록 설정
                 activeColor: Color.fromARGB(255, 196, 42, 250),
                 checkColor: Colors.white,
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               CheckboxListTile(
                 title: const Text('영수증 첨부'),
-                value: isReceiptUploaded,
-                onChanged: (bool? value) {
-                  setState(() {
-                    isReceiptUploaded = value ?? false;
-                  });
-                },
+                value: false,  // 기본적으로 체크되지 않도록 설정
+                onChanged: null,  // 사용자가 체크박스를 수동으로 조작하지 못하도록 설정
                 activeColor: Color.fromARGB(255, 196, 42, 250),
                 checkColor: Colors.white,
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               const SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: _pickReceiptImage,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Color.fromARGB(255, 196, 42, 250),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              if (isEcoMarkCertified) // 친환경 세제 마크 인증이 완료된 경우에만 버튼이 보이도록 설정
+                ElevatedButton(
+                  onPressed: _pickReceiptImage,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                    backgroundColor: Color.fromARGB(255, 196, 42, 250),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    '영수증 등록하기',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
-                child: const Text(
-                  '영수증 등록하기',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
             ],
           ),
         ),

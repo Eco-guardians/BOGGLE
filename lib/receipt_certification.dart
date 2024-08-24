@@ -21,6 +21,15 @@ class _ReceiptCertificationState extends State<ReceiptCertification> {
   bool isEcoMarkCertified = true; // 친환경 세제 마크 인증 완료
   bool isReceiptUploaded = true; // 영수증 첨부 완료
 
+  @override
+  void initState() {
+    super.initState();
+    // 영수증 이미지가 첨부된 경우 isReceiptUploaded를 true로 설정
+    if (widget.receiptImage != null) {
+      isReceiptUploaded = true;
+    }
+  }
+
   void _completeCertification() {
     if (isEcoMarkCertified && isReceiptUploaded) {
       final certification = Certification(
@@ -112,11 +121,7 @@ class _ReceiptCertificationState extends State<ReceiptCertification> {
               CheckboxListTile(
                 title: const Text('친환경 세제 마크 인증 완료'),
                 value: isEcoMarkCertified,
-                onChanged: (bool? value) {
-                  setState(() {
-                    isEcoMarkCertified = value ?? false;
-                  });
-                },
+                onChanged: null, // 사용자가 수동으로 조작하지 못하도록 설정
                 activeColor: Color.fromARGB(255, 196, 42, 250),
                 checkColor: Colors.white,
                 controlAffinity: ListTileControlAffinity.leading,
@@ -130,30 +135,27 @@ class _ReceiptCertificationState extends State<ReceiptCertification> {
               CheckboxListTile(
                 title: const Text('영수증 첨부'),
                 value: isReceiptUploaded,
-                onChanged: (bool? value) {
-                  setState(() {
-                    isReceiptUploaded = value ?? false;
-                  });
-                },
+                onChanged: null, // 사용자가 수동으로 조작하지 못하도록 설정
                 activeColor: Color.fromARGB(255, 196, 42, 250),
                 checkColor: Colors.white,
                 controlAffinity: ListTileControlAffinity.leading,
               ),
               const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: _completeCertification,
-                style: ElevatedButton.styleFrom(
-                  minimumSize: const Size(double.infinity, 50),
-                  backgroundColor: Color.fromARGB(255, 196, 42, 250),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(10),
+              if (isReceiptUploaded) // 영수증이 첨부된 경우에만 버튼이 보이도록 설정
+                ElevatedButton(
+                  onPressed: _completeCertification,
+                  style: ElevatedButton.styleFrom(
+                    minimumSize: const Size(double.infinity, 50),
+                    backgroundColor: Color.fromARGB(255, 196, 42, 250),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    '세제 인증하기',
+                    style: TextStyle(fontSize: 18, color: Colors.white),
                   ),
                 ),
-                child: const Text(
-                  '세제 인증하기',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
-                ),
-              ),
               const SizedBox(height: 40),
             ],
           ),

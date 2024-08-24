@@ -31,7 +31,7 @@ class _CleanserCertificationListState extends State<CleanserCertificationList> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
-          content: Text('$points 포인트가 사용자 $userId에게 지급되었습니다.'),
+          content: Text('$points 포인트가 지급되었습니다.'),
         ),
       );
     });
