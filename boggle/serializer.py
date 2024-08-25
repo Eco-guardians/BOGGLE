@@ -1,6 +1,8 @@
 from rest_framework import serializers
+import base64
+from django.core.files.base import ContentFile
 from boggle.models import Task, Userlist, Quiz, Report, Dictionary
-
+from boggle.models import CommunityPost
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -15,12 +17,22 @@ class QuizSerializer(serializers.ModelSerializer):
         fields = '__all__'
 
 
+# serializers.py
+
 class ReportSerializer(serializers.ModelSerializer):
     class Meta:
         model = Report
-        fields = ('id', 'work','title','image')
+        fields = ['id', 'title', 'work', 'image', 'latitude', 'longitude']
 
 class UserlistSerializer(serializers.ModelSerializer):
     class Meta:
         model = Userlist
         fields = ('id', 'nickname','password','location', 'email', 'point')
+
+class CommunityPostSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = CommunityPost
+        fields = '__all__'
+        extra_kwargs = {
+            'content': {'required': True},  # Make 'content' optional
+        }

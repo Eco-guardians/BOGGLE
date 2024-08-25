@@ -1,29 +1,13 @@
 import 'dart:io';
-
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'model.dart';
-import 'certification_page.dart';
+import 'receipt_certification.dart';
 import 'detergent_certification.dart';
-import 'utils.dart'; // utils.dart 파일 임포트
-
-class CleanserList extends StatelessWidget {
-  final Certification? newCertification;
-  final String userId; // userId를 받도록 수정
-
-  const CleanserList({Key? key, this.newCertification, required this.userId}) : super(key: key);
-
-  @override
-  Widget build(BuildContext context) {
-    return MaterialApp(
-      home: CleanserCertificationList(newCertification: newCertification, userId: userId),
-    );
-  }
-}
 
 class CleanserCertificationList extends StatefulWidget {
   final Certification? newCertification;
-  final String userId; // userId를 받도록 수정
+  final String userId;
 
   const CleanserCertificationList({Key? key, this.newCertification, required this.userId}) : super(key: key);
 
@@ -35,30 +19,33 @@ class _CleanserCertificationListState extends State<CleanserCertificationList> {
   List<Certification> certificationData = [];
 
   @override
-  void initState() {
-    super.initState();
+  void didChangeDependencies() {
+    super.didChangeDependencies();
     if (widget.newCertification != null) {
       certificationData.add(widget.newCertification!);
-      // 새로운 인증이 추가될 때 포인트 지급
       updateUserPoints(context, widget.userId, 25);
     }
+  }
+
+  void updateUserPoints(BuildContext context, String userId, int points) {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('$points 포인트가 지급되었습니다.'),
+        ),
+      );
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      appBar: PreferredSize(
-        preferredSize: const Size.fromHeight(kToolbarHeight),
-        child: Padding(
-          padding: const EdgeInsets.all(10.10),
-          child: AppBar(
-            title: const Text('세제 인증 내역', style: TextStyle(color: Colors.black)),
-            centerTitle: true,
-            backgroundColor: Colors.white,
-            elevation: 0,
-          ),
-        ),
+      appBar: AppBar(
+        title: const Text('세제 인증 내역', style: TextStyle(color: Colors.black)),
+        centerTitle: true,
+        backgroundColor: Colors.white,
+        elevation: 0,
       ),
       body: ListView.builder(
         itemCount: certificationData.length,
@@ -69,41 +56,27 @@ class _CleanserCertificationListState extends State<CleanserCertificationList> {
                 color: Colors.white,
                 child: ListTile(
                   title: Text(
-                      certificationData[index].cleansername,
-                      style: GoogleFonts.notoSans(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: const Color.fromARGB(255, 0, 0, 0),
-                      )
+                    certificationData[index].certificationDate,
+                    style: GoogleFonts.notoSans(
+                      fontSize: 18,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 0, 0, 0),
+                    ),
                   ),
-                  subtitle: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                          certificationData[index].certificationcheck,
-                          style: GoogleFonts.notoSans(
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal,
-                            color: const Color.fromARGB(255, 196, 42, 250),
-                          )
-                      ),
-                      Align(
-                        alignment: Alignment.centerRight,
-                        child: Text(
-                          certificationData[index].certificationdate,
-                          style: GoogleFonts.notoSans(
-                            fontSize: 15,
-                            fontWeight: FontWeight.normal,
-                            color: const Color.fromARGB(255, 190, 190, 190),
-                          ),
-                        ),
-                      ),
-                    ],
+                  trailing: Text(
+                    certificationData[index].certificationCheck,
+                    style: GoogleFonts.notoSans(
+                      fontSize: 15,
+                      fontWeight: FontWeight.bold,
+                      color: const Color.fromARGB(255, 196, 42, 250),
+                    ),
                   ),
                   onTap: () {
-                    Navigator.of(context).push(MaterialPageRoute(
-                        builder: (context) => CertificationPage(certification: certificationData[index])));
-                    debugPrint(certificationData[index].cleansername);
+                    Navigator.of(context).push(
+                      MaterialPageRoute(
+                        builder: (context) => CertificationDetailPage(certification: certificationData[index]),
+                      ),
+                    );
                   },
                 ),
               ),
@@ -129,8 +102,7 @@ class _CleanserCertificationListState extends State<CleanserCertificationList> {
               setState(() {
                 certificationData.add(result);
               });
-              // 새로운 인증이 추가될 때 포인트 지급
-              await updateUserPoints(context, widget.userId, 25);
+              updateUserPoints(context, widget.userId, 25);
             }
           },
           shape: const CircleBorder(),
@@ -141,3 +113,44 @@ class _CleanserCertificationListState extends State<CleanserCertificationList> {
     );
   }
 }
+
+
+class CertificationDetailPage extends StatelessWidget {
+  final Certification certification;
+
+  const CertificationDetailPage({Key? key, required this.certification}) : super(key: key);
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text('인증 상세'),
+        backgroundColor: Colors.white,
+      ),
+      body: SingleChildScrollView( // 여기에 SingleChildScrollView 추가
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                '인증 날짜: ${certification.certificationDate}',
+                style: const TextStyle(fontSize: 18),
+              ),
+              const SizedBox(height: 20),
+              Text(
+                '인증 상태: ${certification.certificationCheck}',
+                style: const TextStyle(fontSize: 18, color: Color.fromARGB(255, 196, 42, 250)),
+              ),
+              const SizedBox(height: 30),
+              Image.file(certification.cleanserImage),
+              const SizedBox(height: 20),
+              Image.file(certification.receiptImage),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
