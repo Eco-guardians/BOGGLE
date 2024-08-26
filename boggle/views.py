@@ -1,4 +1,5 @@
 from django.shortcuts import render
+from django.shortcuts import render
 from boggle.serializer import ReportSerializer, TaskSerializer
 from rest_framework.response import Response
 from rest_framework.decorators import api_view
@@ -18,7 +19,29 @@ from django.views.decorators.csrf import csrf_exempt
 import json
 from django.db.models import F
 from django.contrib.auth.hashers import make_password
+import pathlib
+from pathlib import Path
+import torch
+import numpy as np
+import cv2
+from django.http import JsonResponse
+from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+import sys
+import logging
 
+# # PosixPath를 WindowsPath로 대체
+# temp = pathlib.PosixPath
+# pathlib.PosixPath = pathlib.WindowsPath
+
+
+
+
+
+# #PosixPath를 WindowsPath로 대체
+# temp = pathlib.PosixPath
+# pathlib.PosixPath = pathlib.WindowsPath
 
 class TestViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
@@ -32,17 +55,17 @@ def register_user(request):
         user_id = request.data.get('id', '')
         nickname = request.data.get('nickname', '')
         email = request.data.get('email', '')
-        
+
         # id, 닉네임, 이메일이 중복되는지 확인
         if Userlist.objects.filter(nickname=nickname).exists():
             return Response({'message': '이미 사용중인 닉네임입니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         if Userlist.objects.filter(id=user_id).exists():
             return Response({'message': '이미 사용중인 ID입니다.'}, status=status.HTTP_400_BAD_REQUEST)
 
         if Userlist.objects.filter(email=email).exists():
             return Response({'message': '가입된 이메일이 존재합니다.'}, status=status.HTTP_400_BAD_REQUEST)
-        
+
         serializer = UserlistSerializer(data=request.data)
         if serializer.is_valid():
             serializer.save()
@@ -90,7 +113,7 @@ def find_user_password(request):
             return Response({"message": "ID와 이메일을 입력해주세요."}, status=400)
 
 
-# 비밀번호 업데이트 
+# 비밀번호 업데이트
 @api_view(['PUT'])
 def update_password(request):
     if request.method == 'PUT':
@@ -216,8 +239,8 @@ def withdraw(request, user_id):
             return Response({"message": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
     else:
         return Response({"message": "DELETE 메서드를 사용해야 합니다."})
-                        
-## 세제 인증하기 
+
+## 세제 인증하기
 @api_view(['POST'])
 def addTask(request):
     if request.method == 'POST':
@@ -275,7 +298,7 @@ serviceKeyDecoded = unquote(serviceKey, 'UTF-8')
 def check_water_dictionary(searchNms=["물", "오염", "환경", "수질"], numOfRows=100):
     url = "http://apis.data.go.kr/B500001/myportal/dictionary/dictionarylist"
     results = []
-    
+
     for searchNm in searchNms:
         print(f"Searching for: {searchNm}")
         # First request to get the total number of entries
@@ -286,46 +309,46 @@ def check_water_dictionary(searchNms=["물", "오염", "환경", "수질"], numO
             '_type': 'xml',
             'searchNm': searchNm
         }
-        
+
         query_string = urlencode(params)
         request_url = f"{url}?{query_string}"
-        
+
         response = requests.get(request_url)
         print(f"Response status code for {searchNm}: {response.status_code}")
-        
+
         if response.status_code == 200:
             xml = response.text
             soup = BeautifulSoup(xml, 'html.parser')
-            
+
             # Check if totalcount is present
             totalCountTag = soup.find('totalcount')
             if totalCountTag is None:
                 print(f"No totalcount found for {searchNm}")
                 continue
-            
+
             totalCount = int(totalCountTag.text)
             totalPages = (totalCount // numOfRows) + 1
             print(f"Total count for {searchNm}: {totalCount}, Total pages: {totalPages}")
-            
+
             # Get data for each page
             for pageNo in range(1, totalPages + 1):
                 params['pageNo'] = pageNo
                 query_string = urlencode(params)
                 request_url = f"{url}?{query_string}"
-                
+
                 response = requests.get(request_url)
                 print(f"Response status code for {searchNm} page {pageNo}: {response.status_code}")
-                
+
                 if response.status_code == 200:
                     xml = response.text
                     soup = BeautifulSoup(xml, 'html.parser')
-                    
+
                     items = soup.find_all('item')
-                    
+
                     for item in items:
                         hNm = item.find('hnm').text if item.find('hnm') else None
                         explain = item.find('explain').text if item.find('explain') else None
-                        
+
                         # explain이 null인 경우 저장하지 않음
                         if explain:
                             result = {
@@ -339,14 +362,14 @@ def check_water_dictionary(searchNms=["물", "오염", "환경", "수질"], numO
                     print(f"Failed to retrieve data for page: {pageNo}")
         else:
             print(f"Failed to retrieve data for search term: {searchNm}")
-    
+
     print(f"Total results fetched: {len(results)}")
     return results
 
 def save_to_django():
     entries = check_water_dictionary()
     saved_words = set()  # 이미 저장된 단어를 추적하기 위한 집합
-    
+
     for entry in entries:
         if entry['hNm'] and entry['explain']:  # 데이터 검증
             # 중복된 단어인지 확인하고, 저장되지 않은 단어라면 저장
@@ -368,9 +391,9 @@ def check_answer(request):
         data = json.loads(request.body)
         question = data.get('question')
         user_answer = data.get('answer')
-        
+
         entry = Dictionary.objects.filter(explain=question).first()
-        
+
         if entry and entry.hNm == user_answer:
             return JsonResponse({'result': 'correct'})
         else:
@@ -385,29 +408,29 @@ from .models import Dictionary
 def generate_quiz(num_questions=5):
     entries = list(Dictionary.objects.all().values('hNm', 'explain'))
     selected_entries = random.sample(entries, num_questions)
-    
+
     quiz_data = []
     for entry in selected_entries:
         other_entries = [e for e in entries if e['hNm'] != entry['hNm']]
         choices = random.sample(other_entries, 3)
         choices.append(entry)
         random.shuffle(choices)
-        
+
         quiz_item = {
             'hNm': entry['hNm'],
             'explain': entry['explain'],
             'choices': [choice['hNm'] for choice in choices]
         }
         quiz_data.append(quiz_item)
-    
+
     return quiz_data
 
 def quiz_data_api(request):
-    quiz_data = generate_quiz(num_questions=10)  
+    quiz_data = generate_quiz(num_questions=10)
     return JsonResponse(quiz_data, safe=False)
 
 
-# 하수구 신고 하기 
+# 하수구 신고 하기
 
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -454,7 +477,7 @@ def deleteReport(request, pk):
     except Report.DoesNotExist:
         return Response({'error': 'Report not found'}, status=404)  # 404 Not Found
 
-#회원 정보에 점수 추가하기 
+#회원 정보에 점수 추가하기
 from django.http import JsonResponse
 from boggle.models import Userlist
 
@@ -462,7 +485,7 @@ def update_user_points(request):
     if request.method == 'POST':
         user_id = request.POST.get('userId')
         points_to_add = int(request.POST.get('pointsToAdd'))
-        
+
         try:
             user = Userlist.objects.get(pk=user_id)
             user.point += points_to_add
@@ -504,9 +527,9 @@ def get_water_quality(request):
         'mgtNo': 'ME2007E008',  # 실제 사업코드로 대체
         'type': 'json'
     }
-    
+
     response = requests.get(endpoint, params=params)
-    
+
     if response.status_code == 200:
         data = response.json()
         # 적절한 데이터 경로를 수정
@@ -516,3 +539,130 @@ def get_water_quality(request):
         return JsonResponse({'error': 'Failed to load water quality data'}, status=response.status_code)
 
 
+
+
+#YOLO 연결 및 이미지 전처리 -> 객체 탐지 -> 결과 반환
+logger = logging.getLogger('boggle')
+
+# 모델 로드
+try:
+    # YOLOv5 모델 로드
+    model = torch.hub.load('ultralytics/yolov5', 'custom', path="./models/best.pt", force_reload=True)
+    model.eval()  # 모델을 평가 모드로 설정
+except Exception as e:
+    logger.error(f"Error loading YOLO model: {e}")
+
+def preprocess_image(image_path):
+    """ 이미지를 전처리하여 모델에 맞게 변환 """
+    img = cv2.imread(image_path)
+    if img is None:
+        logger.error(f"Failed to load image at path: {image_path}")
+        raise FileNotFoundError(f"Image not found at path: {image_path}")
+
+    logger.debug("Image successfully loaded")
+
+    # 이미지 크기를 YOLOv5 모델에 맞게 리사이즈 (예: 512x512)
+    img = cv2.resize(img, (512, 512))
+
+    img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)
+    img = torch.from_numpy(img).float()
+    img = img.permute(2, 0, 1)  # HWC to CHW
+    img = img.unsqueeze(0)  # 배치 차원 추가
+    return img
+
+LABELS = ['eco_mark']  # 단일 라벨 리스트
+
+def detect_objects(image_path):
+    """ 객체 탐지를 수행하고 결과 반환 """
+    img = preprocess_image(image_path)
+    results = model(img)
+
+    # 결과를 출력해 디버깅
+    print("Results:", results)
+    boxes = results[0].detach().numpy()
+    print("Boxes:", boxes)
+
+    results_dict = []
+    for box in boxes:
+        label = LABELS[0]  # 단일 라벨이므로 항상 첫 번째 라벨을 사용
+        result = {
+            'xmin': float(box[0]),  # 바운딩 박스의 좌표
+            'ymin': float(box[1]),
+            'xmax': float(box[2]),
+            'ymax': float(box[3]),
+            'confidence': float(box[4]),  # 신뢰도
+            'name': label  # 라벨을 결과에 포함
+        }
+        results_dict.append(result)
+
+    return results_dict
+
+@csrf_exempt
+def detect_view(request):
+    """ 객체 탐지 뷰: POST 요청에서 이미지를 받아 객체 탐지를 수행 """
+    logger.debug("detect_view called")
+
+    if request.method == 'POST' and request.FILES.get('image'):
+        try:
+            # 이미지를 파일로 저장하기 전 기존 파일 삭제
+            image_relative_path = 'temp.jpg'
+            if default_storage.exists(image_relative_path):
+                default_storage.delete(image_relative_path)  # 기존 파일 삭제
+
+            # 이미지를 파일로 저장
+            image = request.FILES['image']
+            image_full_path = default_storage.save(image_relative_path, ContentFile(image.read()))
+
+            # 파일이 저장된 경로를 로그로 출력
+            logger.debug(f"Image saved at: {default_storage.path(image_full_path)}")
+            logger.debug("Image received")
+
+            # 파일 존재 여부 확인
+            if not default_storage.exists(image_relative_path):
+                logger.error(f"Image not found at path: {default_storage.path(image_full_path)}")
+                return JsonResponse({'error': 'Image not found after saving.'}, status=500)
+
+            logger.debug(f"File found at expected path: {default_storage.path(image_full_path)}")
+
+            # 파일 경로가 모델로 전달되기 전에 올바르게 전달되는지 확인
+            logger.debug(f"Processing image at: {default_storage.path(image_full_path)}")
+
+            results = detect_objects(default_storage.path(image_full_path))
+            logger.debug(f"Detection results: {results}")
+
+            # 결과를 JSON으로 변환하여 반환
+            return JsonResponse(results, safe=False)  # safe=False로 반환
+
+        except FileNotFoundError as e:
+            logger.error(f"File not found during detection: {e}")
+            return JsonResponse({'error': 'File not found during detection.'}, status=500)
+        except Exception as e:
+            logger.error(f"Error during object detection: {e}")
+            return JsonResponse({'error': str(e)}, status=500)
+        # finally 블록 제거 -> 파일 삭제하지 않음
+    else:
+        logger.error("Invalid request")
+        return JsonResponse({'error': 'Invalid request'}, status=400)
+# community/views.py
+from rest_framework import status
+from rest_framework.response import Response
+from rest_framework.decorators import api_view
+from django.views.decorators.csrf import csrf_exempt
+from .models import CommunityPost
+from .serializer import CommunityPostSerializer
+
+@api_view(['POST'])
+def create_community_post(request):
+    if request.method == 'POST':
+        serializer = CommunityPostSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        print("Validation errors:", serializer.errors)  # Add this line
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+def get_recruitment_posts(request):
+    # post_type이 '참여자 모집'인 게시물만 조회
+    posts = CommunityPost.objects.filter(post_type='참여자 모집')
+    post_list = list(posts.values())  # QuerySet을 리스트로 변환
+    return JsonResponse(post_list, safe=False)

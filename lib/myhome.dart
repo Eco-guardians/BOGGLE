@@ -5,6 +5,7 @@ import 'package:boggle/mypage.dart';
 import 'package:boggle/community.dart';
 import 'package:boggle/myBOGGLE.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:boggle/travel.dart';
 import 'dart:convert';
 import 'dart:ui';
 
@@ -22,17 +23,38 @@ class _MyHomePageState extends State<MyHomePage> {
   String _nickname = '';
   int _points = 0;
   int _rank = 0;
-  String? _location; // 초기값을 null로 설정
+  String _location = ''; // 초기값을 null로 설정
+  String _travelLocation = '대청댐';
   double _waterQuality = 1.1; // 수질 ppm 값
   late String _userId = widget.userId; // userId 할당
   String QuizSolve = '미참여'; //Quiz 참여여부
   int detCount = 0; //세제 인증 횟수
+  String _imageUrl = ''; // Unsplash에서 불러온 이미지 URL
 
   @override
   void initState() {
     super.initState();
     _fetchUserInfo();
     _fetchWaterQuality(); // 수질 데이터 가져오기 호출
+    _fetchUnsplashImage(_location); // 기본값으로 '대청댐'의 이미지를 가져옴
+  }
+
+  // Unsplash API를 사용하여 이미지를 가져오는 함수
+  void _fetchUnsplashImage(String location) async {
+    final response = await http.get(
+      Uri.parse(
+          'https://api.unsplash.com/search/photos?query=$_travelLocation&client_id=Yyaw6oqQ4ucoIDsSdHyTNsNU7Tzw4quEMaRpm4kTJHE'),
+    );
+
+    if (response.statusCode == 200) {
+      final data = jsonDecode(response.body);
+      setState(() {
+        _imageUrl = data['results'][0]['urls']['regular'];
+      });
+    } else {
+      // 에러 처리
+      print('Failed to load image');
+    }
   }
 
   void _fetchUserInfo() async {
@@ -90,6 +112,8 @@ class _MyHomePageState extends State<MyHomePage> {
             rank: _rank,
             userId: widget.userId);
         break;
+      case 5:
+        nextPage = Travel(location: _travelLocation, userId: widget.userId);
       default:
         nextPage = MyPage(userId: widget.userId);
     }
@@ -295,94 +319,105 @@ class _MyHomePageState extends State<MyHomePage> {
             ' ',
             style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
           ),
-          _buildWaterTravelCard(),
+          _buildWaterTravelCard("대청댐"),
           SizedBox(height: 30),
         ],
       ),
     );
   }
 
-  Widget _buildWaterTravelCard() {
-    return Container(
-      height: 200,
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(0.1),
-            spreadRadius: 2,
-            blurRadius: 5,
-            offset: Offset(0, 2),
-          ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
-        child: Stack(
-          children: [
-            // 배경 이미지
-            Image.asset(
-              'image/water_travel.png', // 이미지 경로
-              fit: BoxFit.cover,
-              width: double.infinity,
-              height: double.infinity,
+  Widget _buildWaterTravelCard(String location) {
+    // location에 따른 이미지를 Unsplash에서 가져옴
+    _fetchUnsplashImage(location);
+
+    return GestureDetector(
+      onTap: () {
+        _navigateToPage(5); // 페이지 이동 기능 추가
+      },
+      child: Container(
+        height: 200,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.1),
+              spreadRadius: 2,
+              blurRadius: 5,
+              offset: Offset(0, 2),
             ),
-            // 블러 필터
-            Positioned(
-              right: 0,
-              child: Container(
-                width: 130, // 블러 처리할 영역의 너비를 조정
-                height: 200,
-                child: BackdropFilter(
-                  filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // 블러 강도 조정
-                  child: Container(
-                    color: const Color.fromARGB(255, 183, 224, 245)
-                        .withOpacity(0.8), // 블러 효과 뒤의 색상
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(20),
+          child: Stack(
+            children: [
+              // 배경 이미지: Unsplash API에서 가져온 이미지 사용
+              _imageUrl.isNotEmpty
+                  ? Image.network(
+                      _imageUrl, // 불러온 이미지 URL 사용
+                      fit: BoxFit.cover,
+                      width: double.infinity,
+                      height: double.infinity,
+                    )
+                  : CircularProgressIndicator(), // 이미지가 로딩 중일 때 표시
+
+              // 블러 필터
+              Positioned(
+                right: 0,
+                child: Container(
+                  width: 130, // 블러 처리할 영역의 너비를 조정
+                  height: 200,
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5), // 블러 강도 조정
+                    child: Container(
+                      color: const Color.fromARGB(255, 183, 224, 245)
+                          .withOpacity(0.8), // 블러 효과 뒤의 색상
+                    ),
                   ),
                 ),
               ),
-            ),
-            // 텍스트와 아이콘
-            Padding(
-              padding: const EdgeInsets.all(16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    '내 주변 물 여행지',
-                    style: TextStyle(
-                        fontSize: 16,
-                        fontWeight: FontWeight.bold,
-                        color: Colors.black),
-                  ),
-                  Spacer(),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.end,
-                    children: [
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.end,
-                        children: [
-                          Icon(
-                            Icons.luggage,
-                            color: Colors.lightBlue,
-                            size: 50,
-                          ),
-                          SizedBox(height: 8),
-                          Text(
-                            '대청댐',
-                            style: TextStyle(
-                                fontSize: 20,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.black),
-                          ),
-                        ],
-                      ),
-                    ],
-                  ),
-                ],
+              // 텍스트와 아이콘
+              Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '내 주변 물 여행지',
+                      style: TextStyle(
+                          fontSize: 16,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.black),
+                    ),
+                    Spacer(),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.end,
+                      children: [
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.end,
+                          children: [
+                            Icon(
+                              Icons.luggage,
+                              color: Colors.lightBlue,
+                              size: 50,
+                            ),
+                            SizedBox(height: 8),
+                            Text(
+                              _travelLocation,
+                              style: TextStyle(
+                                  fontSize: 20,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.black),
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

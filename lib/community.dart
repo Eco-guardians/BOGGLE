@@ -1,12 +1,17 @@
+import 'package:boggle/recruitment_post.dart';
 import 'package:flutter/material.dart';
 import 'package:boggle/do_list.dart';
 import 'package:boggle/myhome.dart';
 import 'package:boggle/mypage.dart';
 import 'package:boggle/communityInfo.dart';
+import 'package:boggle/recruitment_post.dart';
 import 'package:like_button/like_button.dart';
 import 'package:intl/intl.dart';
 import 'dart:io';
 import 'package:image_picker/image_picker.dart';
+import 'package:http/http.dart' as http;
+import 'dart:convert';
+import 'dart:async';
 
 class Community extends StatefulWidget {
   final String userId;
@@ -37,6 +42,44 @@ class _CommunityState extends State<Community> {
     ),
   ];
 
+  // final List<RecruitmentPost> recruitmentPosts = [
+  //   RecruitmentPost(
+  //     title: '주말 플로깅 모집',
+  //     location: '[충청북도]',
+  //     description: '이번 주말 플로깅에 참여하실 분을 모집합니다. 함께 환경 보호 활동을 해보세요!',
+  //   ),
+  //   RecruitmentPost(
+  //     title: '청소 자원봉사자 모집',
+  //     location: '[경기도]',
+  //     description: '우리 동네 청소에 도움을 주실 자원봉사자를 찾습니다. 많은 참여 부탁드립니다.',
+  //   ),
+  // ];
+
+// 게시물 리스트를 초기화하는 부분
+  List<RecruitmentPost> recruitmentPosts = [];
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPosts();  // 초기화 시 DB에서 글을 가져오는 함수 호출
+  }
+
+  Future<void> _fetchPosts() async {
+    final response = await http.get(
+      Uri.parse('http://10.0.2.2:8000/recruitment_posts/'), // Django API URL
+    );
+
+    if (response.statusCode == 200) {
+      final List<dynamic> postData = json.decode(response.body);
+      setState(() {
+        recruitmentPosts = postData.map((post) => RecruitmentPost.fromJson(post)).toList();
+      });
+    } else {
+      // Handle the error
+      print('Failed to load posts');
+    }
+  }
+
   // 페이지 이동 함수
   void _navigateToPage(int index) {
     Widget nextPage;
@@ -63,24 +106,26 @@ class _CommunityState extends State<Community> {
   }
 
   Future<void> _navigateToCommunityPostPage() async {
-    final result = await Navigator.push(
-      context,
-      MaterialPageRoute(builder: (context) => const CommunityPostPage()),
-    );
+  final result = await Navigator.push(
+    context,
+    MaterialPageRoute(builder: (context) => const CommunityPostPage()),
+  );
 
-    if (result != null && result is Map<String, dynamic>) {
-      setState(() {
-        posts.add(CommunityPost(
-          'one', // 사용자의 닉네임
-          'image/usericon.png', // 사용자 아이콘 경로
-          result['date'],
-          result['title'],
-          result['content'],
-          postImage: result['image'],
-        ));
-      });
-    }
+  if (result != null && result is Map<String, dynamic>) {
+    setState(() {
+      posts.add(CommunityPost(
+        'one', // 사용자 닉네임
+        'image/usericon.png', // 사용자 이미지 경로
+        result['date'], // 게시 날짜
+        result['title'], // 게시 제목
+        result['content'], // 게시 내용
+        postImage: result['image'], // 게시 이미지 (선택적)
+      ));
+    });
   }
+}
+
+
 
   @override
   Widget build(BuildContext context) {
@@ -91,8 +136,8 @@ class _CommunityState extends State<Community> {
         backgroundColor: Colors.white,
         title: Image.asset(
           'image/boggleimg.png',
-          height: 28, // 이미지 높이 설정
-          fit: BoxFit.cover, // 이미지 fit 설정
+          height: 28,
+          fit: BoxFit.cover,
         ),
         centerTitle: false,
       ),
@@ -101,21 +146,23 @@ class _CommunityState extends State<Community> {
           Container(
             color: Colors.white,
             margin: const EdgeInsets.all(16.0),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const Text(
-                  'ACTIVE',
-                  style: TextStyle(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.black,
-                  ),
-                ),
-                const Text('금주의 플로깅에 참여해보세요!'),
-                const SizedBox(height: 16.0),
-                Image.asset('image/commu.png'), // Updated image path
-              ],
+            height: 200, // Adjust the height as needed
+            child: PageView.builder(
+              itemCount: recruitmentPosts.length,
+              itemBuilder: (context, index) {
+                return InkWell(
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            RecruitmentPostPage(post: recruitmentPosts[index]),
+                      ),
+                    );
+                  },
+                  child: _buildRecruitPost(recruitmentPosts[index]),
+                );                
+              },
             ),
           ),
           const Divider(color: Colors.grey),
@@ -165,6 +212,65 @@ class _CommunityState extends State<Community> {
       ),
     );
   }
+  Widget _buildRecruitPost(RecruitmentPost post) {
+    return Padding(
+      padding: const EdgeInsets.all(8.0),
+      child: Container(
+        decoration: BoxDecoration(
+          color: const Color.fromARGB(255, 217, 130, 255),
+          borderRadius: BorderRadius.circular(8.0),
+        ),
+        child: Stack(
+          children: [
+            Positioned(
+              bottom: 0,
+              left: 0,
+              right: 0,
+              child: Container(
+                color: Colors.black.withOpacity(0.7),
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween, // Distribute space between children
+                      children: <Widget>[
+                        Text(
+                          post.title,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 24,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                        Text(
+                          '[ ${post.recruitment_area} ]', // Add square brackets around the text
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 20,
+                          ),
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(
+                      post.recruitment_date != null 
+                        ? DateFormat('yyyy-MM-dd').format(post.recruitment_date!).toString() 
+                        : 'Date not available',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
 
   Widget _buildPost(CommunityPost post) {
     return Padding(
@@ -200,8 +306,7 @@ class _CommunityState extends State<Community> {
                   // Handle like action
                 },
               ),
-              Text(
-                  '${post.likeCount}'), // Static example, replace with dynamic data
+              Text('${post.likeCount}'), // Static example, replace with dynamic data
               const SizedBox(width: 16.0),
               IconButton(
                 icon: const Icon(Icons.comment),
@@ -210,8 +315,7 @@ class _CommunityState extends State<Community> {
                   // Handle comment action
                 },
               ),
-              Text(
-                  '${post.commentCount}'), // Static example, replace with dynamic data
+              Text('${post.commentCount}'), // Static example, replace with dynamic data
             ],
           ),
           const Divider(color: Colors.grey),
@@ -220,6 +324,7 @@ class _CommunityState extends State<Community> {
     );
   }
 }
+
 
 class CommunityPostScreen extends StatefulWidget {
   final CommunityPost post;
@@ -381,7 +486,14 @@ class CommunityPostPage extends StatefulWidget {
 class _CommunityPostPageState extends State<CommunityPostPage> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
+  final TextEditingController _recruitmentPeopleController = TextEditingController();
+  final TextEditingController _recruitmentDateController = TextEditingController();
+  final TextEditingController _recruitmentDeadlineController = TextEditingController();
+  final TextEditingController _recruitmentAreaController = TextEditingController();
+  final TextEditingController _descriptionController = TextEditingController();
+
   File? _image;
+  String _postType = '일반 게시글'; // 게시글 유형을 나타내는 변수
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -401,22 +513,66 @@ class _CommunityPostPageState extends State<CommunityPostPage> {
     super.dispose();
   }
 
-  void _submitPost() {
-    final String title = _titleController.text;
-    final String content = _contentController.text;
-    final String date = DateFormat('yyyy-MM-dd HH:mm').format(DateTime.now());
+Future<void> _submitPost() async {
+  final String title = _titleController.text.trim();
+  final String content = _contentController.text.trim();
+  final String date = DateTime.now().toIso8601String();
+  final String postType = _postType;
 
-    if (title.isNotEmpty && content.isNotEmpty) {
-      Navigator.pop(context, {
-        'title': title,
-        'content': content,
-        'date': date,
-        'image': _image,
-      });
-    }
+  // Validate required fields
+  if (title.isEmpty) {
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('제목을 입력해 주세요.')),
+    );
+    return;
   }
 
-  @override
+  // Initialize the post data map
+  Map<String, dynamic> postData = {
+    'title': title,
+    'content': content,
+    'post_type': postType,
+    'date': date,
+  };
+
+  // Add additional fields based on the post type
+  if (postType == '참여자 모집') {
+    postData.addAll({
+      'recruitment_people': _recruitmentPeopleController.text.trim(),
+      'recruitment_date': _recruitmentDateController.text.trim(),
+      'recruitment_deadline': _recruitmentDeadlineController.text.trim(),
+      'recruitment_area': _recruitmentAreaController.text.trim(),
+      'description': _descriptionController.text.trim(),
+    });
+  }
+
+  // Add image if it's available
+  if (_image != null) {
+    postData['image'] = base64Encode(_image!.readAsBytesSync());
+  }
+
+  // Send the POST request to the Django backend
+  final response = await http.post(
+    Uri.parse('http://10.0.2.2:8000/create_post/'),  // Replace with your Django URL
+    headers: {'Content-Type': 'application/json'},
+    body: json.encode(postData),
+  );
+
+  // Check the response status
+  if (response.statusCode == 201) {
+    // Successfully submitted
+    Navigator.pop(context, postData);  // Pass data back to the previous screen
+  } else {
+    // Handle error
+    final responseData = json.decode(response.body);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text('Failed to submit post: ${responseData['content'] ?? 'Unknown error'}')),
+    );
+    print('Failed to submit post: ${response.body}');
+  }
+}
+
+@override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // 배경색 흰색으로 설정
@@ -440,15 +596,38 @@ class _CommunityPostPageState extends State<CommunityPostPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                const Text(
-                  '글 작성',
-                  style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                ),
-                Icon(Icons.info_outline, color: Color.fromARGB(255, 196, 42, 250)),
-              ],
+            // 글 작성 타입 선택
+            const Text(
+              '글 유형 선택',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 10),
+            RadioListTile<String>(
+              title: const Text('일반 게시글'),
+              value: '일반 게시글',
+              groupValue: _postType,
+              onChanged: (value) {
+                setState(() {
+                  _postType = value!;
+                });
+              },
+            ),
+            RadioListTile<String>(
+              title: const Text('참여자 모집'),
+              value: '참여자 모집',
+              groupValue: _postType,
+              onChanged: (value) {
+                setState(() {
+                  _postType = value!;
+                });
+              },
+            ),
+            const SizedBox(height: 20),
+
+            // 제목 입력
+            const Text(
+              '글 제목',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 10),
             TextField(
@@ -459,6 +638,10 @@ class _CommunityPostPageState extends State<CommunityPostPage> {
               ),
             ),
             const SizedBox(height: 20),
+
+            // '일반 게시글' 타입일 경우에만 사진 첨부 가능
+            if (_postType == '일반 게시글') ...[
+              // 내용 입력
             TextField(
               controller: _contentController,
               maxLines: 8,
@@ -470,23 +653,134 @@ class _CommunityPostPageState extends State<CommunityPostPage> {
               ),
             ),
             const SizedBox(height: 20),
-            const Text(
-              '사진 첨부',
-              style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-            ),
-            const SizedBox(height: 10),
-            GestureDetector(
-              onTap: _pickImage,
-              child: Container(
-                color: Colors.grey[200],
-                width: 100,
-                height: 100,
-                child: _image != null
-                    ? Image.file(_image!, fit: BoxFit.cover)
-                    : const Icon(Icons.add, color: Colors.grey),
+              const Text(
+                '사진 첨부',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
               ),
-            ),
-            const SizedBox(height: 40),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: _pickImage,
+                child: Container(
+                  color: Colors.grey[200],
+                  width: 100,
+                  height: 100,
+                  child: _image != null
+                      ? Image.file(_image!, fit: BoxFit.cover)
+                      : const Icon(Icons.add, color: Colors.grey),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
+
+            // '참여자 모집' 선택 시 보여줄 추가 입력 필드들
+            if (_postType == '참여자 모집') ...[
+              const Text(
+                '모집 인원',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _recruitmentPeopleController,
+                decoration: const InputDecoration(
+                  labelText: '모집 인원을 입력해주세요.',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '봉사 일자',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () async {
+                  DateTime today = DateTime.now();
+                  DateTime? selectedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: today,
+                    lastDate: DateTime(2100),
+                  );
+                  if (selectedDate != null) {
+                    setState(() {
+                      _recruitmentDateController.text =
+                          '${selectedDate.year}-${selectedDate.month}-${selectedDate.day}';
+                    });
+                  }
+                },
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: _recruitmentDateController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '모집 마감일자',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              GestureDetector(
+                onTap: () async {
+                  DateTime today = DateTime.now();
+                  DateTime? selectedDate = await showDatePicker(
+                    context: context,
+                    initialDate: DateTime.now(),
+                    firstDate: today,
+                    lastDate: DateTime(2100),
+                  );
+                  if (selectedDate != null) {
+                    setState(() {
+                      _recruitmentDeadlineController.text =
+                          '${selectedDate.year}-${selectedDate.month}-${selectedDate.day}';
+                    });
+                  }
+                },
+                child: AbsorbPointer(
+                  child: TextField(
+                    controller: _recruitmentDeadlineController,
+                    decoration: const InputDecoration(
+                      border: OutlineInputBorder(),
+                      suffixIcon: Icon(Icons.calendar_today),
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '봉사 지역',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _recruitmentAreaController,
+                decoration: const InputDecoration(
+                  labelText: '봉사 지역을 입력해주세요.',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 20),
+              const Text(
+                '설명',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 10),
+              TextField(
+                controller: _descriptionController,
+                maxLines: 4,
+                decoration: const InputDecoration(
+                  labelText: '설명을 입력해주세요.',
+                  border: OutlineInputBorder(),
+                ),
+              ),
+              const SizedBox(height: 40),
+            ],
+
+            // 등록하기 버튼
             ElevatedButton(
               onPressed: _submitPost,
               style: ElevatedButton.styleFrom(

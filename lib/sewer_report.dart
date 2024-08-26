@@ -146,18 +146,18 @@ class MarkerDialog extends StatelessWidget {
     final formKey = GlobalKey<FormState>();
 
     return AlertDialog(
-      title: const Text('Add Marker'),
+      title: const Text('위치 추가하기'),
       content: Form(
         key: formKey,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('Latitude: ${lat.toStringAsFixed(7)}'),
-            Text('Longitude: ${lon.toStringAsFixed(7)}'),
+            Text('위도: ${lat.toStringAsFixed(7)}'),
+            Text('경도: ${lon.toStringAsFixed(7)}'),
             TextFormField(
               controller: nameController,
               decoration: const InputDecoration(
-                labelText: 'Name',
+                labelText: '이름',
               ),
               validator: (value) {
                 if (value == null || value.isEmpty) {
@@ -174,7 +174,7 @@ class MarkerDialog extends StatelessWidget {
           onPressed: () {
             Navigator.of(context).pop();
           },
-          child: const Text('Cancel'),
+          child: const Text('취소'),
         ),
         ElevatedButton(
           onPressed: () {
@@ -183,7 +183,7 @@ class MarkerDialog extends StatelessWidget {
               Navigator.of(context).pop();
             }
           },
-          child: const Text('Add Marker'),
+          child: const Text('확인'),
         ),
       ],
     );
