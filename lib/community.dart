@@ -59,19 +59,6 @@ class _CommunityState extends State<Community> {
     ),
   ];
 
-  // final List<RecruitmentPost> recruitmentPosts = [
-  //   RecruitmentPost(
-  //     title: '주말 플로깅 모집',
-  //     location: '[충청북도]',
-  //     description: '이번 주말 플로깅에 참여하실 분을 모집합니다. 함께 환경 보호 활동을 해보세요!',
-  //   ),
-  //   RecruitmentPost(
-  //     title: '청소 자원봉사자 모집',
-  //     location: '[경기도]',
-  //     description: '우리 동네 청소에 도움을 주실 자원봉사자를 찾습니다. 많은 참여 부탁드립니다.',
-  //   ),
-  // ];
-
 // 게시물 리스트를 초기화하는 부분
   List<RecruitmentPost> recruitmentPosts = [];
 
@@ -80,22 +67,6 @@ class _CommunityState extends State<Community> {
     super.initState();
     _fetchPosts();  // 초기화 시 DB에서 글을 가져오는 함수 호출
   }
-
-  // Future<void> _fetchPosts() async {
-  //   final response = await http.get(
-  //     Uri.parse('http://10.0.2.2:8000/recruitment_posts/'), // Django API URL
-  //   );
-
-  //   if (response.statusCode == 200) {
-  //     final List<dynamic> postData = json.decode(response.body);
-  //     setState(() {
-  //       recruitmentPosts = postData.map((post) => RecruitmentPost.fromJson(post)).toList();
-  //     });
-  //   } else {
-  //     // Handle the error
-  //     print('Failed to load posts');
-  //   }
-  // }
 
   Future<void> _fetchPosts() async {
   final response = await http.get(
@@ -541,30 +512,6 @@ class _CommunityPostPageState extends State<CommunityPostPage> {
     _fetchUserInfo();  // Fetch user info when the widget is initialized
   }
 
-//   void _fetchUserInfo() async {
-//   try {
-//     final response =
-//         await http.get(Uri.parse('http://10.0.2.2:8000/user_info/$_userId'));
-
-//     if (response.statusCode == 200) {
-//       print('Response body: ${response.body}');
-//       final data = json.decode(utf8.decode(response.bodyBytes));
-
-//       setState(() {
-//         _nickname = data['nickname'] ?? '';
-//         _points = data['point'] ?? 0;
-//         _rank = data['rank'] ?? 0;
-//         _location = data['location'] ?? 'Unknown';
-//       });
-
-//       print('Nickname: $_nickname');
-//     } else {
-//       print('Failed to load user info. Status code: ${response.statusCode}');
-//     }
-//   } catch (e) {
-//     print('Error fetching user info: $e');
-//   }
-// }
   void _fetchUserInfo() async {
     try {
       final response = await http.get(Uri.parse('http://10.0.2.2:8000/user_info/$_userId'));

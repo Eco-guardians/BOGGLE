@@ -42,7 +42,6 @@ path('update_user_points/', views.update_user_points, name='update_user_points')
     path('withdraw/<str:user_id>/', views.withdraw, name='withdraw'),
     path('detect/', views.detect_view, name='detect'),
 
-    # community/urls.py
     path('create_post/', views.create_community_post, name='create_post'),
     path('recruitment_posts/', views.get_recruitment_posts, name='recruitment_posts'),
 ]

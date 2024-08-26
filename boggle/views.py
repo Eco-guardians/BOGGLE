@@ -643,6 +643,7 @@ def detect_view(request):
     else:
         logger.error("Invalid request")
         return JsonResponse({'error': 'Invalid request'}, status=400)
+    
 # community/views.py
 from rest_framework import status
 from rest_framework.response import Response
