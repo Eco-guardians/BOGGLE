@@ -1,14 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:boggle/do_list.dart';
 import 'package:boggle/mypage.dart';
 import 'package:boggle/community.dart';
 import 'package:boggle/myBOGGLE.dart';
+import 'package:boggle/Store.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:boggle/travel.dart';
 import 'dart:convert';
 import 'dart:ui';
 import 'package:location/location.dart'; // 위치 정보를 위해 추가
+import 'package:geocoding/geocoding.dart'
+    as geocoding; // geocoding 패키지 추가, 별칭 사용
+import 'package:file_picker/file_picker.dart';
+import 'package:csv/csv.dart'; //to load csv files
 
 class MyHomePage extends StatefulWidget {
   final String userId;
@@ -24,22 +30,24 @@ class _MyHomePageState extends State<MyHomePage> {
   String _nickname = '';
   int _points = 0;
   int _rank = 0;
-  Location _loc = new Location();
+  Location _loc = new Location(); // location 패키지의 Location 사용
   String _location = ''; // 초기값을 null로 설정
   String _travelLocation = '대청댐';
   double _waterQuality = 1.1; // 수질 ppm 값
   late String _userId = widget.userId; // userId 할당
-  String QuizSolve = '미참여'; //Quiz 참여여부
-  int detCount = 0; //세제 인증 횟수
+  String QuizSolve = '미참여'; // Quiz 참여여부
+  int detCount = 0; // 세제 인증 횟수
   String _imageUrl = ''; // Unsplash에서 불러온 이미지 URL
+  String PollutionCode = '';
 
   @override
   void initState() {
     super.initState();
-    _initializeLocationService(); // 위치 서비스 초기화 호출
-    _fetchUserInfo();
-    _fetchWaterQuality(); // 수질 데이터 가져오기 호출
-    _fetchUnsplashImage(_location); // 기본값으로 '대청댐'의 이미지를 가져옴
+    _initializeLocationService().then((_) {
+      _fetchUserInfo();
+      _fetchWaterQuality(); // 수질 데이터 가져오기 호출
+      _fetchUnsplashImage(_location); // 위치가 설정된 후 이미지를 가져옴
+    });
   }
 
   // 위치 서비스 초기화 함수
@@ -68,13 +76,30 @@ class _MyHomePageState extends State<MyHomePage> {
     setState(() {
       _location = '${_locationData.latitude}, ${_locationData.longitude}';
     });
+
+    // Reverse Geocoding을 사용해 시도 정보 가져오기
+    List<geocoding.Placemark> placemarks =
+        await geocoding.placemarkFromCoordinates(
+      _locationData.latitude!,
+      _locationData.longitude!,
+    );
+
+    // 시도 정보 추출
+    geocoding.Placemark place = placemarks[0];
+    String administrativeArea = place.administrativeArea ?? "Unknown";
+
+    setState(() {
+      _location = administrativeArea; // 시도 정보로 업데이트
+    });
+
+    print("Current location: $administrativeArea");
   }
 
   // Unsplash API를 사용하여 이미지를 가져오는 함수
   void _fetchUnsplashImage(String location) async {
     final response = await http.get(
       Uri.parse(
-          'https://api.unsplash.com/search/photos?query=$_travelLocation&client_id=Yyaw6oqQ4ucoIDsSdHyTNsNU7Tzw4quEMaRpm4kTJHE'),
+          'https://api.unsplash.com/search/photos?query=$location&client_id=Yyaw6oqQ4ucoIDsSdHyTNsNU7Tzw4quEMaRpm4kTJHE'),
     );
 
     if (response.statusCode == 200) {
@@ -97,7 +122,6 @@ class _MyHomePageState extends State<MyHomePage> {
         _nickname = data['nickname'] ?? ''; // null 체크 및 기본값 설정
         _points = data['point'] ?? 0;
         _rank = data['rank'] ?? 0;
-        _location = data['location'] ?? 'Unknown';
       });
     } else {
       // 에러 처리
@@ -106,13 +130,19 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void _fetchWaterQuality() async {
-    final response =
-        await http.get(Uri.parse('http://10.0.2.2:8000/get_water_quality/'));
+    const String serviceKey =
+        'y0czX2BWC7qpf3dvnFysHAkuvDJxgIAhm5e7aYphrpqdGYwkjOEiwUoWl9mU8L0591Q6trKU2TrxJjme6fb9bA%3D%3D';
+    const String mgtNo = 'ME2007E008';
+
+    final response = await http.get(Uri.parse(
+        'http://apis.data.go.kr/B090026/WaterqualityService/getInfo?ServiceKey=$serviceKey&mgtNo=$mgtNo&type=json'));
 
     if (response.statusCode == 200) {
       final data = json.decode(utf8.decode(response.bodyBytes)); // UTF-8 디코딩
       setState(() {
-        _waterQuality = data['waterQuality'] ?? 1.1; // null 체크 및 기본값 설정
+        _waterQuality =
+            double.tryParse(data['aftBodPlulod']?.toString() ?? '1.1') ??
+                1.1; // null 체크 및 기본값 설정
       });
     } else {
       // 에러 처리
@@ -146,6 +176,10 @@ class _MyHomePageState extends State<MyHomePage> {
       case 5:
         nextPage = Travel(location: _travelLocation, userId: widget.userId);
         break;
+      case 6:
+        nextPage = ShopScreen(userId: widget.userId);
+        break;
+
       default:
         nextPage = MyPage(userId: widget.userId);
     }
@@ -169,63 +203,53 @@ class _MyHomePageState extends State<MyHomePage> {
       fontWeight: FontWeight.bold,
     );
 
-    return DefaultTabController(
-      // DefaultTabController로 Scaffold 전체를 감쌈
-      length: 0, // 상단 탭의 수
-      child: Scaffold(
-        appBar: AppBar(
-          automaticallyImplyLeading: false,
-          backgroundColor: Colors.white,
-          title: Row(
-            children: [
-              Image.asset(
-                'image/boggleimg.png',
-                height: 28, // 이미지 높이 설정
-                fit: BoxFit.cover, // 이미지 fit 설정
-              ),
-            ],
-          ),
-          centerTitle: false,
-          actions: [
-            Padding(
-              padding: const EdgeInsets.only(right: 14.0), // 오른쪽에 16px 여백 추가
-              child: IconButton(
-                icon: CircleAvatar(
-                  radius: 18,
-                  backgroundImage:
-                      AssetImage('image/usericon.png'), // 사용자 프로필 이미지 경로
-                ),
-                onPressed: () {
-                  // 프로필 아이콘 클릭 시 동작 추가
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                        builder: (context) => MyPage(userId: widget.userId)),
-                  );
-                },
-              ),
+    return Scaffold(
+      appBar: AppBar(
+        automaticallyImplyLeading: false,
+        backgroundColor: Colors.white,
+        title: Row(
+          children: [
+            Image.asset(
+              'image/boggleimg.png',
+              height: 28, // 이미지 높이 설정
+              fit: BoxFit.cover, // 이미지 fit 설정
             ),
           ],
-          bottom: PreferredSize(
-            preferredSize: Size.fromHeight(25),
-            child: Align(
-              alignment: Alignment.centerLeft,
-              child: Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+        ),
+        centerTitle: false,
+        actions: [
+          Padding(
+            padding: const EdgeInsets.only(right: 14.0), // 오른쪽에 16px 여백 추가
+            child: IconButton(
+              icon: CircleAvatar(
+                radius: 18,
+                backgroundImage:
+                    AssetImage('image/usericon.png'), // 사용자 프로필 이미지 경로
               ),
+              onPressed: () {
+                // 프로필 아이콘 클릭 시 동작 추가
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                      builder: (context) => MyPage(userId: widget.userId)),
+                );
+              },
+            ),
+          ),
+        ],
+        bottom: PreferredSize(
+          preferredSize: Size.fromHeight(25),
+          child: Align(
+            alignment: Alignment.centerLeft,
+            child: Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 16.0),
             ),
           ),
         ),
-
-        body: Container(
-          color: Colors.white, // 배경색을 흰색으로 설정
-          child: TabBarView(
-            children: [
-              _buildAquariumTab(indicatorTextStyle),
-            ],
-          ),
-        ),
-        // BottomNavigationBar 제거
+      ),
+      body: Container(
+        color: Colors.white, // 배경색을 흰색으로 설정
+        child: _buildAquariumTab(indicatorTextStyle),
       ),
     );
   }
@@ -303,8 +327,8 @@ class _MyHomePageState extends State<MyHomePage> {
             crossAxisSpacing: 10,
             children: [
               _buildCard('내 보글', 'image/wave.png', '', '', 61, 168, 224, 4),
-              _buildCard('내 포인트', 'image/gacha.png', _points.toString(), '/150',
-                  207, 154, 225, 4)
+              _buildCard('내 포인트', 'image/gacha.png', _points.toString(), '',
+                  207, 154, 225, 6)
             ],
           ),
         ],
