@@ -8,6 +8,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:boggle/travel.dart';
 import 'dart:convert';
 import 'dart:ui';
+import 'package:location/location.dart'; // 위치 정보를 위해 추가
 
 class MyHomePage extends StatefulWidget {
   final String userId;
@@ -23,6 +24,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String _nickname = '';
   int _points = 0;
   int _rank = 0;
+  Location _loc = new Location();
   String _location = ''; // 초기값을 null로 설정
   String _travelLocation = '대청댐';
   double _waterQuality = 1.1; // 수질 ppm 값
@@ -34,9 +36,38 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   void initState() {
     super.initState();
+    _initializeLocationService(); // 위치 서비스 초기화 호출
     _fetchUserInfo();
     _fetchWaterQuality(); // 수질 데이터 가져오기 호출
     _fetchUnsplashImage(_location); // 기본값으로 '대청댐'의 이미지를 가져옴
+  }
+
+  // 위치 서비스 초기화 함수
+  Future<void> _initializeLocationService() async {
+    bool _serviceEnabled;
+    PermissionStatus _permissionGranted;
+    LocationData _locationData;
+
+    _serviceEnabled = await _loc.serviceEnabled();
+    if (!_serviceEnabled) {
+      _serviceEnabled = await _loc.requestService();
+      if (!_serviceEnabled) {
+        return;
+      }
+    }
+
+    _permissionGranted = await _loc.hasPermission();
+    if (_permissionGranted == PermissionStatus.denied) {
+      _permissionGranted = await _loc.requestPermission();
+      if (_permissionGranted != PermissionStatus.granted) {
+        return;
+      }
+    }
+
+    _locationData = await _loc.getLocation();
+    setState(() {
+      _location = '${_locationData.latitude}, ${_locationData.longitude}';
+    });
   }
 
   // Unsplash API를 사용하여 이미지를 가져오는 함수
@@ -114,6 +145,7 @@ class _MyHomePageState extends State<MyHomePage> {
         break;
       case 5:
         nextPage = Travel(location: _travelLocation, userId: widget.userId);
+        break;
       default:
         nextPage = MyPage(userId: widget.userId);
     }
@@ -510,7 +542,7 @@ class _MyHomePageState extends State<MyHomePage> {
             children: [
               Text('이달의 수질',
                   style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
-              Text(_location ?? 'Unknown'),
+              Text(_location),
             ],
           ),
           SizedBox(height: 10),

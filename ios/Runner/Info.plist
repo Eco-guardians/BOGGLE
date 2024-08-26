@@ -45,5 +45,7 @@
 	<true/>
 	<key>UIApplicationSupportsIndirectInputEvents</key>
 	<true/>
+	<key>NSLocationWhenUseUsageDescription</key>
+	<string>This app needs GPS to track location</string>
 </dict>
 </plist>
