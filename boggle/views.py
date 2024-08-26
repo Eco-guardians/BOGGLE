@@ -31,17 +31,17 @@ from django.core.files.base import ContentFile
 import sys
 import logging
 
-# PosixPath를 WindowsPath로 대체
-temp = pathlib.PosixPath
-pathlib.PosixPath = pathlib.WindowsPath
+# # PosixPath를 WindowsPath로 대체
+# temp = pathlib.PosixPath
+# pathlib.PosixPath = pathlib.WindowsPath
 
 
 
 
 
-#PosixPath를 WindowsPath로 대체
-temp = pathlib.PosixPath
-pathlib.PosixPath = pathlib.WindowsPath
+# #PosixPath를 WindowsPath로 대체
+# temp = pathlib.PosixPath
+# pathlib.PosixPath = pathlib.WindowsPath
 
 class TestViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
