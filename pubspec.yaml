@@ -87,6 +87,7 @@ flutter:
     - image/background.png
     - image/weeds.png
     - image/fishes.png
+    - image/fish.png
     - image/fish_far.png
     - image/bubble.png
     - image/cleanserocr.png

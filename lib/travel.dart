@@ -61,30 +61,18 @@ class _TravelState extends State<Travel> {
             Navigator.pushReplacement(
                 context,
                 MaterialPageRoute(
-                    builder: (context) => MyHomePage(userId: widget.userId)));
+                    builder: (context) => MyHomePage(
+                        userId: widget.userId))); // userId를 전달하여 MyHomePage로 이동
           },
         ),
-        title: RichText(
-          text: TextSpan(
-            children: [
-              TextSpan(
-                text: 'BOGGLE',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.black,
-                ),
-              ),
-              TextSpan(
-                text: '.',
-                style: TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.bold,
-                  color: Colors.purple,
-                ),
-              ),
-            ],
-          ),
+        title: Row(
+          children: [
+            Image.asset(
+              'image/boggleimg.png', // 로고 이미지 경로
+              height: 28,
+            ),
+            SizedBox(width: 8),
+          ],
         ),
       ),
       body: SingleChildScrollView(
