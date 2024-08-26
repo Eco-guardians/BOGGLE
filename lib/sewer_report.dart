@@ -113,8 +113,8 @@ class _MapScreenState extends State<MapScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Google Maps Sample App'),
-        backgroundColor: Colors.green[700],
+        title: const Text('위치 설정'),
+        backgroundColor: Color.fromARGB(255, 195, 96, 202),
       ),
       body: GoogleMap(
         onMapCreated: _onMapCreated,
