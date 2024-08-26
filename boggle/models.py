@@ -47,6 +47,11 @@ class Userlist(models.Model):
     email = models.EmailField(null=False, unique=True, max_length=254)  
     point = models.BigIntegerField(default=0)
     rank = models.BigIntegerField(default = 1)
+    whale = models.BooleanField(default=False)
+    fish = models.BooleanField(default=False)
+    turtle = models.BooleanField(default=False)
+    weeds = models.BooleanField(default=False)
+
 
 
 # community/models.py

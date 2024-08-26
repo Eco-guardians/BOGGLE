@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:google_fonts/google_fonts.dart';
 import 'package:http/http.dart' as http;
 import 'dart:convert';
 import 'package:boggle/myhome.dart';
@@ -27,18 +26,45 @@ class _ShopScreenState extends State<ShopScreen> {
       '물고기': false,
       '해초': false,
     };
+    _fetchItem();
     _fetchUserPoints();
+  }
+
+  Future<void> _fetchItem() async {
+    Map<int, String> indexToKey = {
+      0: '고래',
+      1: '거북이',
+      2: '물고기',
+      3: '해초',
+    };
+
+    // Map을 통해 인덱스를 돌며 요청을 보냄
+    for (int i = 0; i < indexToKey.length; i++) {
+      final response = await http.get(Uri.parse(
+          'http://10.0.2.2:8000/update_user_item/${widget.userId}/${i}'));
+      if (response.statusCode == 200) {
+        final userItemFromApi = json.decode(response.body)['item'];
+        final String? key = indexToKey[i];
+        if (key != null) {
+          setState(() {
+            itemDisabled[key] = userItemFromApi;
+          });
+        }
+      } else {
+        throw Exception('Failed to load item');
+      }
+    }
   }
 
   Future<void> _updateUserPoints(
       String userId, int pointsToSub, String itemName) async {
     final response = await http.post(
-      Uri.parse('http://10.0.2.2:8000/update_user_points/'),
+      Uri.parse('http://10.0.2.2:8000/sub_user_points/'),
       headers: <String, String>{
         'Content-Type': 'application/x-www-form-urlencoded',
       },
       body: {
-        'userId': widget.userId,
+        'userId': userId,
         'pointsToSub': pointsToSub.toString(),
       },
     );
@@ -50,7 +76,38 @@ class _ShopScreenState extends State<ShopScreen> {
       });
       _fetchUserPoints();
     } else {
-      throw Exception('Failed to update points');
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text('포인트 업데이트에 실패했습니다. 다시 시도해주세요.'),
+        ),
+      );
+    }
+  }
+
+  Future<void> _updateUserItem(String userId, String itemName) async {
+    Map<String, int> indexToKey = {
+      '고래': 0,
+      '거북이': 1,
+      '물고기': 2,
+      '해초': 3,
+    };
+    int i = indexToKey[itemName]!;
+    final response = await http.post(
+      Uri.parse('http://10.0.2.2:8000/buy_user_item/${userId}/${i}'),
+      headers: <String, String>{
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+      body: {
+        'userId': userId,
+        'item': i.toString(),
+      },
+    );
+
+    if (response.statusCode == 200) {
+      print('Item purchased successfully');
+      // 상태 업데이트는 _handlePurchase에서 처리
+    } else {
+      throw Exception('Failed to purchase item');
     }
   }
 
@@ -69,7 +126,12 @@ class _ShopScreenState extends State<ShopScreen> {
 
   void _handlePurchase(String itemName, int itemPoints) {
     if (userPoints >= itemPoints) {
-      _updateUserPoints(userId, itemPoints, itemName);
+      _updateUserPoints(widget.userId, itemPoints, itemName).then((_) {
+        setState(() {
+          itemDisabled[itemName] = true;
+        });
+      });
+      _updateUserItem(widget.userId, itemName);
     } else {
       // 포인트 부족 경고
       ScaffoldMessenger.of(context).showSnackBar(

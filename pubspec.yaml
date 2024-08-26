@@ -112,6 +112,10 @@ flutter:
     - image/turtleicon.png
     - image/weedicon.png
     - image/fishicon.png
+    - image/whalemerch.png
+    - image/turtlemerch.png
+    - image/fishmerch.png
+    - image/weedmerch.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
