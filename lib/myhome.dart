@@ -1,9 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:http/http.dart' as http;
 import 'package:boggle/do_list.dart';
 import 'package:boggle/mypage.dart';
 import 'package:boggle/community.dart';
 import 'package:boggle/myBOGGLE.dart';
+import 'package:boggle/Store.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:boggle/travel.dart';
 import 'dart:convert';
@@ -11,6 +13,8 @@ import 'dart:ui';
 import 'package:location/location.dart'; // 위치 정보를 위해 추가
 import 'package:geocoding/geocoding.dart'
     as geocoding; // geocoding 패키지 추가, 별칭 사용
+import 'package:file_picker/file_picker.dart';
+import 'package:csv/csv.dart'; //to load csv files
 
 class MyHomePage extends StatefulWidget {
   final String userId;
@@ -34,6 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
   String QuizSolve = '미참여'; // Quiz 참여여부
   int detCount = 0; // 세제 인증 횟수
   String _imageUrl = ''; // Unsplash에서 불러온 이미지 URL
+  String PollutionCode = '';
 
   @override
   void initState() {
@@ -127,7 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
   void _fetchWaterQuality() async {
     const String serviceKey =
         'y0czX2BWC7qpf3dvnFysHAkuvDJxgIAhm5e7aYphrpqdGYwkjOEiwUoWl9mU8L0591Q6trKU2TrxJjme6fb9bA%3D%3D';
-    const String mgtNo = 'ME2007E008'; // 환경영향평가 사업코드 (예시 코드입니다)
+    const String mgtNo = 'ME2007E008';
 
     final response = await http.get(Uri.parse(
         'http://apis.data.go.kr/B090026/WaterqualityService/getInfo?ServiceKey=$serviceKey&mgtNo=$mgtNo&type=json'));
@@ -171,6 +176,10 @@ class _MyHomePageState extends State<MyHomePage> {
       case 5:
         nextPage = Travel(location: _travelLocation, userId: widget.userId);
         break;
+      case 6:
+        nextPage = ShopScreen(userId: widget.userId);
+        break;
+
       default:
         nextPage = MyPage(userId: widget.userId);
     }
@@ -318,8 +327,8 @@ class _MyHomePageState extends State<MyHomePage> {
             crossAxisSpacing: 10,
             children: [
               _buildCard('내 보글', 'image/wave.png', '', '', 61, 168, 224, 4),
-              _buildCard('내 포인트', 'image/gacha.png', _points.toString(), '/150',
-                  207, 154, 225, 4)
+              _buildCard('내 포인트', 'image/gacha.png', _points.toString(), '',
+                  207, 154, 225, 6)
             ],
           ),
         ],

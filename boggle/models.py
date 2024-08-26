@@ -71,3 +71,14 @@ class CommunityPost(models.Model):
     
     def __str__(self):
         return self.title
+    
+from django.contrib.postgres.fields import ArrayField
+from django.db import models
+
+class Item(models.Model):
+    items = ArrayField(models.CharField(max_length=20), blank=False)
+
+
+
+    
+

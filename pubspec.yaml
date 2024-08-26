@@ -43,6 +43,8 @@ dependencies:
   google_maps_flutter: ^2.1.0
   location: ^5.0.0
   geocoding: ^2.0.0
+  csv: ^5.0.0
+  file_picker: ^5.0.0
 
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
@@ -105,6 +107,11 @@ flutter:
     - image/community2.png
     - image/community3.png
     - image/background.png
+    - codes.csv
+    - image/whaleicon.png
+    - image/turtleicon.png
+    - image/weedicon.png
+    - image/fishicon.png
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/assets-and-images/#resolution-aware
