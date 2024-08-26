@@ -30,7 +30,8 @@ class _ShopScreenState extends State<ShopScreen> {
     _fetchUserPoints();
   }
 
-  Future<void> _updateUserPoints(int pointsToSub, String itemName) async {
+  Future<void> _updateUserPoints(
+      String userId, int pointsToSub, String itemName) async {
     final response = await http.post(
       Uri.parse('http://10.0.2.2:8000/update_user_points/'),
       headers: <String, String>{
@@ -68,7 +69,7 @@ class _ShopScreenState extends State<ShopScreen> {
 
   void _handlePurchase(String itemName, int itemPoints) {
     if (userPoints >= itemPoints) {
-      _updateUserPoints(itemPoints, itemName);
+      _updateUserPoints(userId, itemPoints, itemName);
     } else {
       // 포인트 부족 경고
       ScaffoldMessenger.of(context).showSnackBar(
