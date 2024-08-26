@@ -654,11 +654,14 @@ from .serializer import CommunityPostSerializer
 @api_view(['POST'])
 def create_community_post(request):
     if request.method == 'POST':
-        serializer = CommunityPostSerializer(data=request.data)
+        data = request.data.copy()
+        print("Request Data:", data)
+
+        serializer = CommunityPostSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print("Validation errors:", serializer.errors)  # Add this line
+        print("Validation errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def get_recruitment_posts(request):
