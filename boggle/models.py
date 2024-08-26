@@ -1,5 +1,7 @@
 from django.db import models
 from django.utils import timezone
+from django.contrib.postgres.fields import ArrayField
+
 
 class Task(models.Model):
     id = models.AutoField(primary_key=True)
@@ -74,9 +76,6 @@ class CommunityPost(models.Model):
     
 from django.contrib.postgres.fields import ArrayField
 from django.db import models
-
-class Item(models.Model):
-    items = ArrayField(models.CharField(max_length=20), blank=False)
 
 
 
