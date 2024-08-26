@@ -63,7 +63,8 @@ class CommunityPost(models.Model):
     post_type = models.CharField(max_length=50, choices=POST_TYPE_CHOICES, default='일반 게시글')
     date = models.DateTimeField(auto_now_add=True)
     image = models.ImageField(upload_to='post_images/', blank=True, null=True)
-    
+    nickname = models.CharField(null=False, blank=False, max_length=100)
+     
     # 추가 필드: 참여자 모집 관련
     recruitment_people = models.PositiveIntegerField(blank=True, null=True)
     recruitment_date = models.DateField(blank=True, null=True)
