@@ -1,4 +1,5 @@
 import 'package:boggle/recruitment_post.dart';
+import 'package:boggle/user_info.dart';
 import 'package:flutter/material.dart';
 import 'package:boggle/do_list.dart';
 import 'package:boggle/myhome.dart';
@@ -24,6 +25,22 @@ class Community extends StatefulWidget {
 
 class _CommunityState extends State<Community> {
   var _index = 2; // 페이지 인덱스 0,1,2,3
+  String _nickname = '';
+
+  void _fetchUserInfo() async {
+    final response =
+        await http.get(Uri.parse('http://10.0.2.2:8000/user_info/${widget.userId}'));
+    if (response.statusCode == 200) {
+      final data = json.decode(utf8.decode(response.bodyBytes)); // UTF-8 디코딩
+      setState(() {
+        _nickname = data['nickname'] ?? ''; // null 체크 및 기본값 설정
+      });
+      print(_nickname);
+    } else {
+      // 에러 처리
+      print('Failed to load user info');
+    }
+  }
 
   final List<CommunityPost> posts = [
     CommunityPost(
@@ -42,19 +59,6 @@ class _CommunityState extends State<Community> {
     ),
   ];
 
-  // final List<RecruitmentPost> recruitmentPosts = [
-  //   RecruitmentPost(
-  //     title: '주말 플로깅 모집',
-  //     location: '[충청북도]',
-  //     description: '이번 주말 플로깅에 참여하실 분을 모집합니다. 함께 환경 보호 활동을 해보세요!',
-  //   ),
-  //   RecruitmentPost(
-  //     title: '청소 자원봉사자 모집',
-  //     location: '[경기도]',
-  //     description: '우리 동네 청소에 도움을 주실 자원봉사자를 찾습니다. 많은 참여 부탁드립니다.',
-  //   ),
-  // ];
-
 // 게시물 리스트를 초기화하는 부분
   List<RecruitmentPost> recruitmentPosts = [];
 
@@ -65,20 +69,22 @@ class _CommunityState extends State<Community> {
   }
 
   Future<void> _fetchPosts() async {
-    final response = await http.get(
-      Uri.parse('http://10.0.2.2:8000/recruitment_posts/'), // Django API URL
-    );
+  final response = await http.get(
+    Uri.parse('http://10.0.2.2:8000/recruitment_posts/'), // Django API URL
+  );
 
-    if (response.statusCode == 200) {
-      final List<dynamic> postData = json.decode(response.body);
-      setState(() {
-        recruitmentPosts = postData.map((post) => RecruitmentPost.fromJson(post)).toList();
-      });
-    } else {
-      // Handle the error
-      print('Failed to load posts');
-    }
+  if (response.statusCode == 200) {
+    final List<dynamic> postData = json.decode(response.body);
+    setState(() {
+      recruitmentPosts = postData.map((post) {
+        return RecruitmentPost.fromJson(post);
+      }).toList();
+    });
+  } else {
+    // Handle the error
+    print('Failed to load posts');
   }
+}
 
   // 페이지 이동 함수
   void _navigateToPage(int index) {
@@ -108,7 +114,7 @@ class _CommunityState extends State<Community> {
   Future<void> _navigateToCommunityPostPage() async {
   final result = await Navigator.push(
     context,
-    MaterialPageRoute(builder: (context) => const CommunityPostPage()),
+    MaterialPageRoute(builder: (context) => CommunityPostPage(userId: widget.userId))
   );
 
   if (result != null && result is Map<String, dynamic>) {
@@ -124,8 +130,6 @@ class _CommunityState extends State<Community> {
     });
   }
 }
-
-
 
   @override
   Widget build(BuildContext context) {
@@ -477,7 +481,9 @@ class _CommunityPostScreenState extends State<CommunityPostScreen> {
 }
 
 class CommunityPostPage extends StatefulWidget {
-  const CommunityPostPage({Key? key}) : super(key: key);
+  final String userId;
+  
+  const CommunityPostPage({Key? key, required this.userId}) : super(key: key);
 
   @override
   _CommunityPostPageState createState() => _CommunityPostPageState();
@@ -494,6 +500,41 @@ class _CommunityPostPageState extends State<CommunityPostPage> {
 
   File? _image;
   String _postType = '일반 게시글'; // 게시글 유형을 나타내는 변수
+  String _nickname = '';
+  int _points = 0;
+  int _rank = 0;
+  String? _location; // 초기값을 null로 설정
+  late final String _userId = widget.userId; // userId 할당
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchUserInfo();  // Fetch user info when the widget is initialized
+  }
+
+  void _fetchUserInfo() async {
+    try {
+      final response = await http.get(Uri.parse('http://10.0.2.2:8000/user_info/$_userId'));
+
+      if (response.statusCode == 200) {
+        final data = json.decode(utf8.decode(response.bodyBytes));
+
+        setState(() {
+          _nickname = data['nickname'] ?? '';
+          _points = data['point'] ?? 0;
+          _rank = data['rank'] ?? 0;
+          _location = data['location'] ?? 'Unknown';
+        });
+
+        print('Nickname: $_nickname');
+      } else {
+        print('Failed to load user info. Status code: ${response.statusCode}');
+      }
+    } catch (e) {
+      print('Error fetching user info: $e');
+    }
+  }
+
 
   Future<void> _pickImage() async {
     final ImagePicker picker = ImagePicker();
@@ -514,6 +555,7 @@ class _CommunityPostPageState extends State<CommunityPostPage> {
   }
 
 Future<void> _submitPost() async {
+  _fetchUserInfo();
   final String title = _titleController.text.trim();
   final String content = _contentController.text.trim();
   final String date = DateTime.now().toIso8601String();
@@ -533,6 +575,7 @@ Future<void> _submitPost() async {
     'content': content,
     'post_type': postType,
     'date': date,
+    'nickname': _nickname,  
   };
 
   // Add additional fields based on the post type
@@ -554,7 +597,8 @@ Future<void> _submitPost() async {
   // Send the POST request to the Django backend
   final response = await http.post(
     Uri.parse('http://10.0.2.2:8000/create_post/'),  // Replace with your Django URL
-    headers: {'Content-Type': 'application/json'},
+    headers: {
+      'Content-Type': 'application/json'},
     body: json.encode(postData),
   );
 
@@ -782,7 +826,12 @@ Future<void> _submitPost() async {
 
             // 등록하기 버튼
             ElevatedButton(
-              onPressed: _submitPost,
+              onPressed: () {
+                setState(() {
+                  _fetchUserInfo();
+                });
+                _submitPost(); 
+                },
               style: ElevatedButton.styleFrom(
                 minimumSize: const Size(double.infinity, 50),
                 backgroundColor: const Color.fromARGB(255, 196, 42, 250),

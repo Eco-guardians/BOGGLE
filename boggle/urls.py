@@ -38,7 +38,10 @@ urlpatterns = [
     path('find_user_password/', views.find_user_password, name='find_user_password'),
     path('update_password/', views.update_password, name='update_password'),
 
-path('update_user_points/', views.update_user_points, name='update_user_points'),
+    path('update_user_points/', views.update_user_points, name='update_user_points'),
+    path('update_user_item/<str:user_id>/<int:point>', views.update_user_item, name='update_user_item'),
+    path('buy_user_item/<str:user_id>/<int:point>', views.buy_user_item, name='buy_user_item'),
+    path('sub_user_points/', views.sub_user_points, name='sub_user_points'),
     path('user_points/<str:user_id>/', views.get_user_points, name='user_points'),
 
     path('login_view/', views.login_view, name='login_view'),
@@ -49,7 +52,6 @@ path('update_user_points/', views.update_user_points, name='update_user_points')
     path('api/', include(router.urls)),
     path('detect/', views.detect_view, name='detect'),
 
-    # community/urls.py
     path('create_post/', views.create_community_post, name='create_post'),
     path('recruitment_posts/', views.get_recruitment_posts, name='recruitment_posts'),
 ]

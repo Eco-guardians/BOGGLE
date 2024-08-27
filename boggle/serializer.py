@@ -44,5 +44,6 @@ class CommunityPostSerializer(serializers.ModelSerializer):
         model = CommunityPost
         fields = '__all__'
         extra_kwargs = {
-            'content': {'required': True},  # Make 'content' optional
+            'content': {'required': True},
+            'user_name': {'required': True}, 
         }

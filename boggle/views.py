@@ -31,17 +31,17 @@ from django.core.files.base import ContentFile
 import sys
 import logging
 
-# PosixPath를 WindowsPath로 대체
-temp = pathlib.PosixPath
-pathlib.PosixPath = pathlib.WindowsPath
+# # PosixPath를 WindowsPath로 대체
+# temp = pathlib.PosixPath
+# pathlib.PosixPath = pathlib.WindowsPath
 
 
 
 
 
-#PosixPath를 WindowsPath로 대체
-temp = pathlib.PosixPath
-pathlib.PosixPath = pathlib.WindowsPath
+# #PosixPath를 WindowsPath로 대체
+# temp = pathlib.PosixPath
+# pathlib.PosixPath = pathlib.WindowsPath
 
 class TestViewSet(viewsets.ModelViewSet):
     queryset = Task.objects.all()
@@ -497,6 +497,75 @@ def update_user_points(request):
             return JsonResponse({'message': str(e)}, status=500)
     else:
         return JsonResponse({'message': 'Invalid request method'}, status=400)
+    
+def update_user_item(request, user_id, point):
+    if request.method == 'GET':
+        try:
+            user = Userlist.objects.get(pk=user_id)
+            if(point == 0):
+                return JsonResponse({'item': user.whale}, status=200)
+            elif(point == 1):
+                return JsonResponse({'item': user.turtle}, status=200)
+            elif(point == 2):
+                return JsonResponse({'item': user.fish}, status=200)
+            elif(point == 3):
+                return JsonResponse({'item': user.weeds}, status=200)
+        except Userlist.DoesNotExist:
+            return JsonResponse({'message': 'User not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
+    else:
+        return JsonResponse({'message': 'Invalid request method'}, status=400)
+    
+@csrf_exempt
+def buy_user_item(request, user_id, item):
+    if request.method == 'POST':
+        try:
+            user = Userlist.objects.get(pk=user_id)
+
+            if item == 0:
+                user.whale = True
+                message = 'Whale updated successfully'
+            elif item == 1:
+                user.turtle = True
+                message = 'Turtle updated successfully'
+            elif item == 2:
+                user.fish = True
+                message = 'Fish updated successfully'
+            elif item == 3:
+                user.weeds = True
+                message = 'Weeds updated successfully'
+            else:
+                return JsonResponse({'error': 'Invalid item'}, status=400)
+
+            user.save()  # 아이템 상태를 데이터베이스에 저장
+            return JsonResponse({'message': message}, status=200)
+
+        except Userlist.DoesNotExist:
+            return JsonResponse({'message': 'User not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
+    else:
+        return JsonResponse({'message': 'Invalid request method'}, status=400)
+
+        
+
+def sub_user_points(request):
+    if request.method == 'POST':
+        user_id = request.POST.get('userId')
+        points_to_sub = int(request.POST.get('pointsToSub'))
+
+        try:
+            user = Userlist.objects.get(pk=user_id)
+            user.point -= points_to_sub
+            user.save()
+            return JsonResponse({'message': 'Points updated successfully'}, status=200)
+        except Userlist.DoesNotExist:
+            return JsonResponse({'message': 'User not found'}, status=404)
+        except Exception as e:
+            return JsonResponse({'message': str(e)}, status=500)
+    else:
+        return JsonResponse({'message': 'Invalid request method'}, status=400)
 
 
 
@@ -656,6 +725,7 @@ def detect_view(request):
     else:
         logger.error("Invalid request")
         return JsonResponse({'error': 'Invalid request'}, status=400)
+    
 # community/views.py
 from rest_framework import status
 from rest_framework.response import Response
@@ -667,11 +737,14 @@ from .serializer import CommunityPostSerializer
 @api_view(['POST'])
 def create_community_post(request):
     if request.method == 'POST':
-        serializer = CommunityPostSerializer(data=request.data)
+        data = request.data.copy()
+        print("Request Data:", data)
+
+        serializer = CommunityPostSerializer(data=data)
         if serializer.is_valid():
             serializer.save()
             return Response(serializer.data, status=status.HTTP_201_CREATED)
-        print("Validation errors:", serializer.errors)  # Add this line
+        print("Validation errors:", serializer.errors)
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 def get_recruitment_posts(request):
