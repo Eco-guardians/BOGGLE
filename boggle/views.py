@@ -498,6 +498,19 @@ def update_user_points(request):
     else:
         return JsonResponse({'message': 'Invalid request method'}, status=400)
 
+
+
+from rest_framework import viewsets
+from .models import Certification
+from .serializers import CertificationSerializer
+
+class CertificationViewSet(viewsets.ModelViewSet):
+    queryset = Certification.objects.all()
+    serializer_class = CertificationSerializer
+
+
+
+
 from django.http import JsonResponse
 from boggle.models import Userlist
 

@@ -16,6 +16,20 @@ class Quiz(models.Model):
     correct_answer = models.CharField(max_length=100)
     wrong_answers = models.JSONField()
 
+
+# models.py
+from django.db import models
+
+class Certification(models.Model):
+    certification_date = models.DateField(auto_now_add=True)  # 생성 날짜
+    certification_check = models.CharField(max_length=100)    # 인증 여부
+    cleanser_image = models.ImageField(upload_to='cleanser_images/')  # 세제 사진
+    receipt_image = models.ImageField(upload_to='receipt_images/')    # 영수증 사진
+
+    def __str__(self):
+        return f"{self.certification_date} - {self.certification_check}"
+
+
 # dust_checker/models.py
 
 class Dictionary(models.Model):
@@ -71,3 +85,7 @@ class CommunityPost(models.Model):
     
     def __str__(self):
         return self.title
+
+
+
+

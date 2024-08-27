@@ -5,10 +5,16 @@ from boggle import views
 from django.urls import path
 import rest_framework
 from . import views
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
+from .views import CertificationViewSet
 
 
 
 app_name = 'boggle'
+
+router = DefaultRouter()
+router.register(r'certifications', CertificationViewSet)
 
 
 urlpatterns = [
@@ -40,6 +46,7 @@ path('update_user_points/', views.update_user_points, name='update_user_points')
     path('update_user_info/', views.update_user_info, name='update_user_info'),
     path('change_password/', views.change_password, name='change_password'),
     path('withdraw/<str:user_id>/', views.withdraw, name='withdraw'),
+    path('api/', include(router.urls)),
     path('detect/', views.detect_view, name='detect'),
 
     # community/urls.py

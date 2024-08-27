@@ -1,7 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
+import 'package:http/http.dart' as http;
 import 'model.dart';
-import 'cleanser_certificationList.dart'; // CleanserCertificationList를 임포트합니다.
+import 'cleanser_certificationList.dart';
 
 class ReceiptCertification extends StatefulWidget {
   final File cleanserImage;
@@ -30,7 +31,7 @@ class _ReceiptCertificationState extends State<ReceiptCertification> {
     }
   }
 
-  void _completeCertification() {
+  Future<void> _completeCertification() async {
     if (isEcoMarkCertified && isReceiptUploaded) {
       final certification = Certification(
         '인증완료',
@@ -39,33 +40,61 @@ class _ReceiptCertificationState extends State<ReceiptCertification> {
         widget.receiptImage, // 영수증 이미지 추가
       );
 
-      // 팝업 알림 표시
-      showDialog(
-        context: context,
-        builder: (BuildContext context) {
-          return AlertDialog(
-            title: const Text('인증 완료'),
-            content: const Text('인증되었습니다.\n25포인트가 지급되었습니다.'),
-            actions: <Widget>[
-              TextButton(
-                child: const Text('확인'),
-                onPressed: () {
-                  Navigator.pop(context); // 팝업 닫기
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => CleanserCertificationList(
-                        newCertification: certification,
-                        userId: 'userId', // 실제 사용자 ID로 대체해야 함
-                      ),
-                    ),
-                  );
-                },
-              ),
-            ],
-          );
-        },
+      // 서버로 데이터 전송
+      final response = await _sendCertificationData(
+        certification.certificationCheck,
+        certification.cleanserImage,
+        certification.receiptImage,
       );
+
+      if (response.statusCode == 201) {
+        // 서버에 데이터 전송 성공 시 팝업 알림 표시
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('인증 완료'),
+              content: const Text('인증되었습니다.\n25포인트가 지급되었습니다.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('확인'),
+                  onPressed: () {
+                    Navigator.pop(context); // 팝업 닫기
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CleanserCertificationList(
+                          newCertification: certification,
+                          userId: 'userId', // 실제 사용자 ID로 대체해야 함
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      } else {
+        // 서버 전송 실패 시 에러 알림 표시
+        showDialog(
+          context: context,
+          builder: (BuildContext context) {
+            return AlertDialog(
+              title: const Text('오류'),
+              content: const Text('인증 데이터를 서버에 전송하는 데 실패했습니다.'),
+              actions: <Widget>[
+                TextButton(
+                  child: const Text('확인'),
+                  onPressed: () {
+                    Navigator.of(context).pop(); // 팝업 닫기
+                  },
+                ),
+              ],
+            );
+          },
+        );
+      }
     } else {
       // 모든 항목이 체크되지 않은 경우 경고 팝업 표시
       showDialog(
@@ -86,6 +115,20 @@ class _ReceiptCertificationState extends State<ReceiptCertification> {
         },
       );
     }
+  }
+
+  Future<http.StreamedResponse> _sendCertificationData(
+      String certificationCheck, File cleanserImage, File receiptImage) async {
+    var request = http.MultipartRequest(
+        'POST', Uri.parse('http://your-django-server-url/api/certifications/'));
+
+    request.fields['certification_check'] = certificationCheck;
+    request.files.add(await http.MultipartFile.fromPath(
+        'cleanser_image', cleanserImage.path));
+    request.files.add(await http.MultipartFile.fromPath(
+        'receipt_image', receiptImage.path));
+
+    return request.send();
   }
 
   @override

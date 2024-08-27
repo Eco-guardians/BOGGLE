@@ -62,7 +62,7 @@ class _CleanserCertificationState extends State<CleanserCertification> {
 
           // 결과에서 가장 높은 신뢰도의 eco_mark를 찾기
           detectionResult = results.firstWhere(
-                (result) => result['name'] == 'eco_mark' && result['confidence'] >= 0.9,
+                (result) => result['name'] == 'eco_mark' && result['confidence'] >= 0.8,
             orElse: () => null,
           );
 

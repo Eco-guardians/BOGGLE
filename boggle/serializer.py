@@ -29,6 +29,16 @@ class UserlistSerializer(serializers.ModelSerializer):
         model = Userlist
         fields = ('id', 'nickname','password','location', 'email', 'point')
 
+
+from rest_framework import serializers
+from .models import Certification
+
+class CertificationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Certification
+        fields = ['certification_date', 'certification_check', 'cleanser_image', 'receipt_image']
+
+
 class CommunityPostSerializer(serializers.ModelSerializer):
     class Meta:
         model = CommunityPost
