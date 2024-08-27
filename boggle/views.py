@@ -571,7 +571,7 @@ def sub_user_points(request):
 
 from rest_framework import viewsets
 from .models import Certification
-from .serializers import CertificationSerializer
+from boggle.serializer import CertificationSerializer
 
 class CertificationViewSet(viewsets.ModelViewSet):
     queryset = Certification.objects.all()

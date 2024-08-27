@@ -3,6 +3,7 @@ import base64
 from django.core.files.base import ContentFile
 from boggle.models import Task, Userlist, Quiz, Report, Dictionary
 from boggle.models import CommunityPost
+from boggle.models import Certification
 
 class TaskSerializer(serializers.ModelSerializer):
     class Meta:
@@ -30,8 +31,6 @@ class UserlistSerializer(serializers.ModelSerializer):
         fields = ('id', 'nickname','password','location', 'email', 'point')
 
 
-from rest_framework import serializers
-from .models import Certification
 
 class CertificationSerializer(serializers.ModelSerializer):
     class Meta:

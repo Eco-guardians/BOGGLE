@@ -17,7 +17,7 @@ class Quiz(models.Model):
     wrong_answers = models.JSONField()
 
 
-# models.py
+
 from django.db import models
 
 class Certification(models.Model):

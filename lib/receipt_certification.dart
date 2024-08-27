@@ -1,8 +1,8 @@
 import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'model.dart';
 import 'cleanser_certificationList.dart';
+import 'model.dart';
 
 class ReceiptCertification extends StatefulWidget {
   final File cleanserImage;

@@ -49,8 +49,8 @@ urlpatterns = [
     path('update_user_info/', views.update_user_info, name='update_user_info'),
     path('change_password/', views.change_password, name='change_password'),
     path('withdraw/<str:user_id>/', views.withdraw, name='withdraw'),
-    path('api/', include(router.urls)),
     path('detect/', views.detect_view, name='detect'),
+    path('api/', include(router.urls)),
 
     path('create_post/', views.create_community_post, name='create_post'),
     path('recruitment_posts/', views.get_recruitment_posts, name='recruitment_posts'),
